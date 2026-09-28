@@ -3,7 +3,7 @@ import { api } from "@/lib/api/axios";
 export interface Payment {
   paymentId: number;
   amount: number;
-  status: "SUCCESS" | "FAILED" | "PENDING";
+  paymentStatus: "SUCCESS" | "FAILED" | "PENDING";
   paymentDate: string;
   invoiceReference: string;
 }
