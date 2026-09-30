@@ -40,7 +40,8 @@ export default function LoginPage() {
     try {
       const result = await login(values);
       saveSession(result);
-      router.push("/admin/invoices");
+      // Staff (ADMIN / RECEPTIONIST) go to the admin area; guests (USER) go to the front page.
+      router.push(result.role === "USER" ? "/" : "/admin/invoices");
     } catch (err) {
       // Login/register return plain-text error bodies, not JSON
       // (e.g. "Invalid email or password"), so read err.response.data directly.
@@ -58,9 +59,9 @@ export default function LoginPage() {
     <div className="flex min-h-screen items-center justify-center p-6">
       <div className="w-full max-w-sm space-y-6">
         <div>
-          <h1 className="text-2xl font-semibold">Staff login</h1>
+          <h1 className="text-2xl font-semibold">Sign in</h1>
           <p className="text-sm text-muted-foreground">
-            Sign in with your Margin Hotel staff account.
+            Sign in to your Margin Hotel account.
           </p>
         </div>
 
