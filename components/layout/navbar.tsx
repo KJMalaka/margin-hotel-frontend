@@ -20,6 +20,7 @@ import { Button } from "../ui/button";
 import Link from "next/link";
 import Image from "next/image";
 import { ToggleTheme } from "./toogle-theme";
+import { AuthButtons } from "@/components/auth/auth-buttons";
 
 interface RouteProps {
   href: string;
@@ -92,6 +93,11 @@ export const Navbar = () => {
             <SheetFooter className="flex-col sm:flex-col justify-start items-start">
               <Separator className="mb-2" />
 
+              <AuthButtons
+                layout="stack"
+                onNavigate={() => setIsOpen(false)}
+              />
+
               <ToggleTheme />
             </SheetFooter>
           </SheetContent>
@@ -113,7 +119,8 @@ export const Navbar = () => {
         </NavigationMenuList>
       </NavigationMenu>
 
-      <div className="hidden lg:flex">
+      <div className="hidden lg:flex items-center gap-2">
+        <AuthButtons />
         <ToggleTheme />
       </div>
     </header>
