@@ -1,77 +1,56 @@
 import Image from "next/image";
+import { Section, SectionHeading } from "@/components/brand/section";
+import { brandImages } from "@/config/images";
+import { cn } from "@/lib/utils";
 
-interface GalleryImage {
-  src: string;
-  alt: string;
-  label: string;
-  className?: string;
-}
-
-const galleryImages: GalleryImage[] = [
-  {
-    src: "https://images.unsplash.com/photo-1618773928121-c32242e63f39?auto=format&fit=crop&w=1200&q=80",
-    alt: "Standard room with a comfortable bed at Margin Hotel",
-    label: "Standard Room",
-    className: "lg:col-span-2 lg:row-span-2",
-  },
-  {
-    src: "https://images.unsplash.com/photo-1611892440504-42a792e24d32?auto=format&fit=crop&w=800&q=80",
-    alt: "Deluxe room interior at Margin Hotel",
-    label: "Deluxe Room",
-  },
-  {
-    src: "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=800&q=80",
-    alt: "Suite with lounge area at Margin Hotel",
-    label: "Suite",
-  },
-  {
-    src: "https://images.unsplash.com/photo-1611048267451-e6ed903d4a38?auto=format&fit=crop&w=800&q=80",
-    alt: "Margin Hotel lobby",
-    label: "Lobby",
-  },
-  {
-    src: "https://images.unsplash.com/photo-1561501900-3701fa6a0864?auto=format&fit=crop&w=800&q=80",
-    alt: "Margin Hotel pool and deck",
-    label: "Pool & Deck",
-  },
+// Desktop layout (4 columns): one large feature image, then a mix of single
+// and double-width tiles that fill three rows exactly.
+const tileClasses = [
+  "col-span-2 h-72 sm:h-96 lg:h-auto lg:row-span-2",
+  "",
+  "",
+  "lg:col-span-2",
+  "lg:col-span-2",
+  "col-span-2",
 ];
 
 export const GallerySection = () => {
   return (
-    <section id="gallery" className="container py-24 sm:py-32">
-      <h2 className="text-lg text-primary text-center mb-2 tracking-wider">
-        Gallery
-      </h2>
+    <Section id="gallery" tone="light" rules="none">
+      <div className="container">
+        <div className="mb-14 flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+          <SectionHeading
+            eyebrow="Gallery"
+            title="Golden hour, every day"
+            description="A closer look at the spaces waiting for you - from sunlit lounges to the pool deck at dusk."
+          />
+        </div>
 
-      <h2 className="text-3xl md:text-4xl text-center font-bold mb-4">
-        Our Rooms &amp; Hotel
-      </h2>
-
-      <h3 className="md:w-1/2 mx-auto text-xl text-center text-muted-foreground mb-8">
-        A closer look at the spaces waiting for you — from our rooms to the
-        shared spaces around the hotel.
-      </h3>
-
-      <div className="grid grid-cols-2 lg:grid-cols-4 lg:auto-rows-[220px] gap-4">
-        {galleryImages.map(({ src, alt, label, className }) => (
-          <div
-            key={label}
-            className={`group relative overflow-hidden rounded-lg border h-48 lg:h-full ${className ?? ""}`}
-          >
-            <Image
-              src={src}
-              alt={alt}
-              fill
-              sizes="(min-width: 1024px) 25vw, 50vw"
-              className="object-cover transition-transform duration-300 group-hover:scale-105"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-background/0 to-background/0" />
-            <span className="absolute bottom-3 left-3 text-sm font-semibold text-foreground">
-              {label}
-            </span>
-          </div>
-        ))}
+        <ul className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4 lg:auto-rows-[15rem]">
+          {brandImages.gallery.map(({ src, alt, label }, i) => (
+            <li
+              key={label}
+              className={cn(
+                "group relative h-44 overflow-hidden sm:h-56 lg:h-auto",
+                tileClasses[i]
+              )}
+            >
+              <Image
+                src={src}
+                alt={alt}
+                fill
+                sizes={i === 0 ? "(min-width: 1024px) 50vw, 100vw" : "(min-width: 1024px) 25vw, 50vw"}
+                className="object-cover transition-transform duration-1000 ease-out motion-safe:group-hover:scale-[1.04]"
+              />
+              <div aria-hidden className="absolute inset-0 bg-gradient-to-t from-navy-midnight/70 via-navy-midnight/0 to-transparent" />
+              <span className="absolute bottom-4 left-4 flex items-center gap-3 font-heading text-[0.65rem] font-medium uppercase tracking-brand text-white">
+                <span aria-hidden className="h-px w-6 bg-gold" />
+                {label}
+              </span>
+            </li>
+          ))}
+        </ul>
       </div>
-    </section>
+    </Section>
   );
 };

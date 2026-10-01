@@ -6,159 +6,96 @@ html {
   scroll-behavior: smooth;
 }
 
-/* *=========== Default theme =========== */
-/* @layer base {
-  :root {
-    --background: 0 0% 100%;
-    --foreground: 240 10% 3.9%;
-
-    --muted: 240 4.8% 95.9%;
-    --muted-foreground: 240 3.8% 46.1%;
-
-    --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 3.9%;
-
-    --card: 0 0% 100%;
-    --card-foreground: 240 10% 3.9%;
-
-    --border: 240 5.9% 90%;
-    --input: 240 5.9% 90%;
-
-    --primary: 240 5.9% 10%;
-    --primary-foreground: 0 0% 98%;
-
-    --secondary: 240 4.8% 95.9%;
-    --secondary-foreground: 240 5.9% 10%;
-
-    --accent: 240 4.8% 95.9%;
-    --accent-foreground: 240 5.9% 10%;
-
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-
-    --ring: 240 10% 3.9%;
-
-    --radius: 0.5rem;
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
   }
+}
 
-  .dark {
-    --background: 240 10% 3.9%;
-    --foreground: 0 0% 98%;
-
-    --muted: 240 3.7% 15.9%;
-    --muted-foreground: 240 5% 64.9%;
-
-    --popover: 240 10% 3.9%;
-    --popover-foreground: 0 0% 98%;
-
-    --card: 240 10% 3.9%;
-    --card-foreground: 0 0% 98%;
-
-    --border: 240 3.7% 15.9%;
-    --input: 240 3.7% 15.9%;
-
-    --primary: 0 0% 98%;
-    --primary-foreground: 240 5.9% 10%;
-
-    --secondary: 240 3.7% 15.9%;
-    --secondary-foreground: 0 0% 98%;
-
-    --accent: 240 3.7% 15.9%;
-    --accent-foreground: 0 0% 98%;
-
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-
-    --ring: 240 4.9% 83.9%;
-  }
-} */
-
-/* *=========== Orange theme =========== */
+/* *=========== Margin Hotel brand theme ===========
+   Deep Navy #113F61 · Midnight Navy #092336 · Ocean Blue #195b8c
+   Champagne Gold #C7AE6A · Light Gold #d5c28f · Deep Gold #b99a45
+   Gold fails contrast on light backgrounds (2.6:1), so on ivory/white it is
+   only used for rules, borders and fills - never for text. */
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 20 14.3% 4.1%;
+    --background: 43 41% 97%; /* ivory #FAF8F3 */
+    --foreground: 205.5 70% 22.4%; /* deep navy */
 
     --card: 0 0% 100%;
-    --card-foreground: 20 14.3% 4.1%;
+    --card-foreground: 205.5 70% 22.4%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 20 14.3% 4.1%;
+    --popover-foreground: 205.5 70% 22.4%;
 
-    --primary: 24.6 95% 53.1%;
-    --primary-foreground: 60 9.1% 97.8%;
+    --primary: 44 45% 60%; /* champagne gold */
+    --primary-foreground: 205 71% 12.4%; /* midnight navy */
 
-    --secondary: 60 4.8% 95.9%;
-    --secondary-foreground: 24 9.8% 10%;
+    --secondary: 43 36% 92%;
+    --secondary-foreground: 205.5 70% 22.4%;
 
-    --muted: 60 4.8% 95.9%;
-    --muted-foreground: 25 5.3% 44.7%;
+    --muted: 43 32% 93%;
+    --muted-foreground: 205 28% 36%;
 
-    --accent: 60 4.8% 95.9%;
-    --accent-foreground: 24 9.8% 10%;
+    --accent: 43 36% 92%;
+    --accent-foreground: 205.5 70% 22.4%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 60 9.1% 97.8%;
+    --destructive: 0 65% 45%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 20 5.9% 90%;
-    --input: 20 5.9% 90%;
-    --ring: 24.6 95% 53.1%;
-    --radius: 0.5rem;
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --border: 44 32% 85%;
+    --input: 44 26% 80%;
+    --ring: 205.6 70% 32.4%; /* ocean blue */
+    --radius: 0.25rem;
+
+    --sidebar-background: 43 41% 97%;
+    --sidebar-foreground: 205.5 70% 22.4%;
+    --sidebar-primary: 205.5 70% 22.4%;
+    --sidebar-primary-foreground: 43 41% 97%;
+    --sidebar-accent: 43 36% 92%;
+    --sidebar-accent-foreground: 205.5 70% 22.4%;
+    --sidebar-border: 44 32% 85%;
+    --sidebar-ring: 205.6 70% 32.4%;
   }
 
   .dark {
-    --background: 20 14.3% 4.1%;
-    --foreground: 60 9.1% 97.8%;
+    --background: 205 71% 12.4%; /* midnight navy */
+    --foreground: 43 41% 95%;
 
-    --card: 24 9.8% 8%;
-    --card-foreground: 0 0% 95%;
+    --card: 205 62% 16%;
+    --card-foreground: 43 41% 95%;
 
-    --popover: 20 14.3% 4.1%;
-    --popover-foreground: 60 9.1% 97.8%;
+    --popover: 205 62% 16%;
+    --popover-foreground: 43 41% 95%;
 
-    --primary: 20.5 90.2% 48.2%;
-    --primary-foreground: 60 9.1% 97.8%;
+    --primary: 44 45% 60%;
+    --primary-foreground: 205 71% 12.4%;
 
-    --secondary: 12 6.5% 15.1%;
-    --secondary-foreground: 60 9.1% 97.8%;
+    --secondary: 205 52% 20%;
+    --secondary-foreground: 43 41% 95%;
 
-    --muted: 12 6.5% 15.1%;
-    --muted-foreground: 24 5.4% 63.9%;
+    --muted: 205 52% 20%;
+    --muted-foreground: 43 18% 72%;
 
-    --accent: 12 6.5% 15.1%;
-    --accent-foreground: 60 9.1% 97.8%;
+    --accent: 205 52% 22%;
+    --accent-foreground: 43 41% 95%;
 
-    --destructive: 0 72.2% 50.6%;
-    --destructive-foreground: 60 9.1% 97.8%;
+    --destructive: 0 62% 50%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 12 6.5% 15.1%;
-    --input: 12 6.5% 15.1%;
-    --ring: 20.5 90.2% 48.2%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --border: 205 42% 24%;
+    --input: 205 42% 26%;
+    --ring: 44 45% 60%;
+
+    --sidebar-background: 205 71% 12.4%;
+    --sidebar-foreground: 43 41% 95%;
+    --sidebar-primary: 44 45% 60%;
+    --sidebar-primary-foreground: 205 71% 12.4%;
+    --sidebar-accent: 205 52% 20%;
+    --sidebar-accent-foreground: 43 41% 95%;
+    --sidebar-border: 205 42% 24%;
+    --sidebar-ring: 44 45% 60%;
   }
-}
-
-.shadow-light {
-  box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.085);
-}
-
-.shadow-dark {
-  box-shadow: inset 0 0 5px rgba(255, 255, 255, 0.141);
 }
 
 @layer base {
@@ -166,6 +103,47 @@ html {
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans antialiased;
+    line-height: 1.7;
+  }
+}
+
+@layer components {
+  /* Small uppercase label above section titles. */
+  .eyebrow {
+    @apply font-heading text-xs font-medium uppercase tracking-wide2;
+  }
+
+  /* Large, airy serif display titles. */
+  .display-title {
+    @apply font-display font-normal leading-[1.02] tracking-[-0.005em];
+  }
+
+  /* Signature full-width hairline at the top and bottom of sections:
+     gold on navy, navy on light backgrounds (as in the brand guide). */
+  .section-rule {
+    @apply pointer-events-none absolute inset-x-0 h-px bg-navy/70 dark:bg-gold/40;
+  }
+  .section-rule-gold {
+    @apply pointer-events-none absolute inset-x-0 h-px bg-gold/80;
+  }
+
+  /* Soft metallic gold - logo and key accents only. */
+  .gold-metallic {
+    background-image: linear-gradient(100deg, #b99a45 0%, #f5e9a8 50%, #b99a45 100%);
+  }
+  .text-gold-metallic {
+    @apply gold-metallic bg-clip-text text-transparent;
+  }
+}
+
+@layer utilities {
+  /* Split layouts: pad the text panel so it lines up with .container content
+     (max 1400px, 1.5rem gutter) while the photo runs full-bleed. */
+  .edge-pl {
+    padding-left: max(1.5rem, calc((100vw - 1400px) / 2 + 1.5rem));
+  }
+  .edge-pr {
+    padding-right: max(1.5rem, calc((100vw - 1400px) / 2 + 1.5rem));
   }
 }

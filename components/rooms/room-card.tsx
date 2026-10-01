@@ -1,15 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { Users } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { ArrowRight, Users } from "lucide-react";
 import { ROOM_TYPE_LABELS, type Room } from "@/data/rooms";
 
 const zar = new Intl.NumberFormat("en-ZA", {
@@ -27,55 +18,59 @@ interface RoomCardProps {
 // booking.
 export const RoomCard = ({ room }: RoomCardProps) => {
   const available = room.status === "AVAILABLE";
+  const label = ROOM_TYPE_LABELS[room.type];
 
   return (
-    <Card className="bg-muted/60 dark:bg-card h-full flex flex-col overflow-hidden">
-      <div className="relative">
+    <article className="group flex h-full flex-col border border-border bg-card transition-colors duration-500 hover:border-gold-light">
+      <div className="relative aspect-[4/3] overflow-hidden">
         <Image
           src={room.imageUrl}
-          alt={`${ROOM_TYPE_LABELS[room.type]} room`}
-          width={600}
-          height={400}
-          className="w-full h-48 object-cover"
+          alt={`${label} at Margin Hotel`}
+          fill
+          sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+          className="object-cover transition-transform duration-700 ease-out motion-safe:group-hover:scale-[1.03]"
         />
         {!available && (
-          <Badge variant="destructive" className="absolute top-3 right-3">
-            Unavailable
-          </Badge>
+          <span className="absolute top-4 right-4 bg-navy-midnight/80 px-3 py-1.5 font-heading text-[0.6rem] font-medium uppercase tracking-brand text-ivory backdrop-blur">
+            Currently booked
+          </span>
         )}
       </div>
 
-      <CardHeader className="pb-2">
-        <div className="flex items-center justify-between gap-2">
-          <CardTitle className="text-xl">
-            {ROOM_TYPE_LABELS[room.type]}
-          </CardTitle>
-          <Badge variant="outline">Room {room.roomNumber}</Badge>
-        </div>
-      </CardHeader>
+      <div className="flex flex-1 flex-col p-6 sm:p-7">
+        <p className="eyebrow text-[0.65rem] text-ocean dark:text-gold">
+          Room {room.roomNumber}
+        </p>
+        <h3 className="display-title mt-3 text-3xl text-navy dark:text-ivory">
+          {label}
+        </h3>
 
-      <CardContent className="flex-1 flex items-center justify-between">
-        <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-          <Users className="size-4" />
-          <span>
+        <p className="mt-3 line-clamp-2 text-sm text-muted-foreground">
+          {room.description}
+        </p>
+
+        <div className="mt-6 flex items-end justify-between gap-4 border-t border-border pt-5">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Users className="size-4" strokeWidth={1.5} />
             {room.capacity} {room.capacity === 1 ? "guest" : "guests"}
-          </span>
+          </div>
+          <p className="text-right text-navy dark:text-ivory">
+            <span className="font-heading text-lg font-medium">
+              {zar.format(room.pricePerNight)}
+            </span>
+            <span className="text-xs text-muted-foreground"> / night</span>
+          </p>
         </div>
 
-        <div className="text-lg font-bold">
-          {zar.format(room.pricePerNight)}
-          <span className="text-sm font-normal text-muted-foreground">
-            {" "}
-            / night
-          </span>
-        </div>
-      </CardContent>
-
-      <CardFooter>
-        <Button asChild variant="secondary" className="w-full font-bold">
-          <Link href={`/rooms/${room.roomId}`}>View Room</Link>
-        </Button>
-      </CardFooter>
-    </Card>
+        <Link
+          href={`/rooms/${room.roomId}`}
+          className="mt-6 inline-flex items-center gap-2 self-start font-heading text-[0.7rem] font-medium uppercase tracking-brand text-ocean transition-colors hover:text-navy dark:text-gold dark:hover:text-gold-light"
+        >
+          View room
+          <ArrowRight className="size-3.5 transition-transform duration-300 group-hover:translate-x-1" />
+          <span className="sr-only">: {label}, room {room.roomNumber}</span>
+        </Link>
+      </div>
+    </article>
   );
 };

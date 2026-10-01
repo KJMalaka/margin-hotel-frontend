@@ -43,6 +43,15 @@ export interface BookingFormProps {
      * - used when the form is opened from that room's own page/dialog.
      */
     fixedRoom?: Room;
+    /**
+     * Pre-fill the stay from the home page search bar (/book?checkIn=...).
+     * `guests` narrows the room picker to rooms that fit the party.
+     */
+    initialStay?: {
+        checkInDate?: string;
+        checkOutDate?: string;
+        guests?: number;
+    };
 }
 
 /**
@@ -61,7 +70,7 @@ export interface BookingFormProps {
  * channel-specific screens should wrap this component rather than
  * duplicate it.
  */
-export function BookingForm({ channel, onSuccess, compact, fixedRoom }: BookingFormProps) {
+export function BookingForm({ channel, onSuccess, compact, fixedRoom, initialStay }: BookingFormProps) {
     const [submittedBooking, setSubmittedBooking] = useState<BookingResponse | null>(null);
 
     const form = useForm<BookingFormValues>({
@@ -69,6 +78,8 @@ export function BookingForm({ channel, onSuccess, compact, fixedRoom }: BookingF
         defaultValues: {
             ...bookingFormDefaultValues,
             roomId: fixedRoom?.roomId ?? "",
+            checkInDate: initialStay?.checkInDate ?? "",
+            checkOutDate: initialStay?.checkOutDate ?? "",
         },
     });
 
@@ -77,7 +88,11 @@ export function BookingForm({ channel, onSuccess, compact, fixedRoom }: BookingF
     // already fixed by the caller.
     const availableRooms = fixedRoom
         ? []
-        : roomList.filter((room) => room.status === "AVAILABLE");
+        : roomList.filter(
+              (room) =>
+                  room.status === "AVAILABLE" &&
+                  room.capacity >= (initialStay?.guests ?? 1)
+          );
 
     function onSubmit(values: BookingFormValues) {
         // Booking endpoint isn't live yet - mock the response locally so
@@ -220,6 +235,11 @@ export function BookingForm({ channel, onSuccess, compact, fixedRoom }: BookingF
                                             ))}
                                         </SelectContent>
                                     </Select>
+                                    {initialStay?.guests && initialStay.guests > 1 && (
+                                        <p className="text-sm text-muted-foreground">
+                                            Showing rooms for {initialStay.guests} guests.
+                                        </p>
+                                    )}
                                     <FormMessage />
                                 </FormItem>
                             )}

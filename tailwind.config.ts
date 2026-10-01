@@ -21,7 +21,27 @@ module.exports = {
   		}
   	},
   	extend: {
+  		fontFamily: {
+  			sans: ['var(--font-body)', 'system-ui', 'sans-serif'],
+  			heading: ['var(--font-heading)', 'system-ui', 'sans-serif'],
+  			display: ['var(--font-display)', 'Georgia', 'serif']
+  		},
+  		letterSpacing: {
+  			brand: '0.24em',
+  			wide2: '0.32em'
+  		},
   		colors: {
+  			navy: {
+  				DEFAULT: '#113F61',
+  				midnight: '#092336'
+  			},
+  			ocean: '#195b8c',
+  			gold: {
+  				DEFAULT: '#C7AE6A',
+  				light: '#d5c28f',
+  				deep: '#b99a45'
+  			},
+  			ivory: '#FAF8F3',
   			border: 'hsl(var(--border))',
   			input: 'hsl(var(--input))',
   			ring: 'hsl(var(--ring))',

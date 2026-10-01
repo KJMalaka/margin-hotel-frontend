@@ -1,7 +1,7 @@
 export interface NavItem {
   title: string;
   url: string;
-  icon?: keyof typeof import('@/components/icons').Icons;
+  icon?: keyof typeof import('@/components/icons/icons').Icons;
   isActive?: boolean;
   items?: NavItem[];
 }
