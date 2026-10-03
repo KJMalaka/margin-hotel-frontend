@@ -13,6 +13,7 @@ import {
 import { Button } from "../ui/button";
 import { ToggleTheme } from "./toogle-theme";
 import { Logo } from "@/components/brand/logo";
+import { AuthButtons } from "@/components/auth/auth-buttons";
 
 interface RouteProps {
   href: string;
@@ -71,18 +72,16 @@ export const Navbar = () => {
               </Button>
             </SheetTrigger>
 
-            <SheetContent
-              side="right"
-              className="flex flex-col justify-between bg-navy text-ivory border-l border-gold/30"
-            >
-              <div>
-                <SheetHeader className="mb-10 text-left">
-                  <SheetTitle>
-                    <Link href="/" onClick={() => setIsOpen(false)}>
-                      <Logo className="text-xs" markClassName="size-6" />
-                    </Link>
-                  </SheetTitle>
-                </SheetHeader>
+              <AuthButtons
+                layout="stack"
+                onNavigate={() => setIsOpen(false)}
+              />
+
+              <ToggleTheme />
+            </SheetFooter>
+          </SheetContent>
+        </Sheet>
+      </div>
 
                 <nav aria-label="Main" className="flex flex-col">
                   {routeList.map(({ href, label }) => (
@@ -98,17 +97,9 @@ export const Navbar = () => {
                 </nav>
               </div>
 
-              <SheetFooter className="flex-col sm:flex-col gap-4 items-stretch">
-                <Button asChild variant="gold" size="brand">
-                  <Link href="/book" onClick={() => setIsOpen(false)}>
-                    Book Now
-                  </Link>
-                </Button>
-                <ToggleTheme className="text-ivory/80 hover:bg-white/10 hover:text-gold" />
-              </SheetFooter>
-            </SheetContent>
-          </Sheet>
-        </div>
+      <div className="hidden lg:flex items-center gap-2">
+        <AuthButtons />
+        <ToggleTheme />
       </div>
     </header>
   );

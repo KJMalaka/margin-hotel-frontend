@@ -17,12 +17,20 @@ import {
 } from '@/components/ui/sidebar';
 import { navGroups } from '@/config/nav-config';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
+import { LogOut } from 'lucide-react';
 import { Icons } from '@/components/icons/icons';
 import { ToggleTheme } from '@/components/layout/toogle-theme';
+import { clearSession } from '@/lib/auth/session';
 
 export default function AppSidebar() {
   const pathname = usePathname();
+  const router = useRouter();
+
+  function handleLogout() {
+    clearSession();
+    router.replace('/login');
+  }
 
   return (
     <Sidebar collapsible='icon'>
@@ -81,6 +89,14 @@ export default function AppSidebar() {
         ))}
       </SidebarContent>
       <SidebarFooter className='group-data-[collapsible=icon]:px-2 group-data-[collapsible=icon]:py-4'>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton tooltip='Log out' onClick={handleLogout}>
+              <LogOut />
+              <span>Log out</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
         <ToggleTheme />
       </SidebarFooter>
       <SidebarRail />
