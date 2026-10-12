@@ -4,13 +4,32 @@ import { useEffect, useState } from "react";
 import { getPayments, type Payment } from "@/lib/api/payment";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
-type StatusFilter = "ALL" | "SUCCESS" | "FAILED";
+type StatusFilter = "ALL" | Payment["paymentStatus"];
 
 export default function PaymentsPage() {
   const [payments, setPayments] = useState<Payment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("ALL");
+  const [dateFilter, setDateFilter] = useState("");
+  const [search, setSearch] = useState("");
 
   useEffect(() => {
     async function fetchPayments() {
@@ -27,109 +46,142 @@ export default function PaymentsPage() {
     fetchPayments();
   }, []);
 
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>("ALL");
-  const [search, setSearch] = useState("");
-
-  if (loading) return <p>Loading Payments...</p>;
-  if (error) return <p className="text-red-600">{error}</p>;
-
-  // Keep a payment only if it passes BOTH the status chip and the search box
   const visiblePayments = payments.filter((payment) => {
     const matchesStatus =
       statusFilter === "ALL" || payment.paymentStatus === statusFilter;
     const matchesSearch = (payment.invoiceReference ?? "")
       .toLowerCase()
       .includes(search.trim().toLowerCase());
-    return matchesStatus && matchesSearch;
+    const matchesDate =
+      !dateFilter || payment.paymentDate.slice(0, 10) === dateFilter;
+    return matchesStatus && matchesSearch && matchesDate;
   });
 
-  // Counts shown on the chips, so staff see the totals at a glance
-  const counts = {
-    ALL: payments.length,
-    SUCCESS: payments.filter((p) => p.paymentStatus === "SUCCESS").length,
-    FAILED: payments.filter((p) => p.paymentStatus === "FAILED").length,
-  };
-
   return (
-    <div>
-      <h1 className="text-2xl font-bold mb-6">Payments</h1>
-      <p className="mb-4">Payment activity across all invoices.</p>
-
-      <div className="mb-4 flex flex-wrap items-center gap-3">
-        <div className="flex gap-2">
-          {(["ALL", "SUCCESS", "FAILED"] as StatusFilter[]).map((option) => (
-            <Button
-              key={option}
-              size="sm"
-              variant={statusFilter === option ? "default" : "outline"}
-              onClick={() => setStatusFilter(option)}
-            >
-              {option === "ALL"
-                ? "All"
-                : option === "SUCCESS"
-                  ? "Success"
-                  : "Failed"}{" "}
-              ({counts[option]})
-            </Button>
-          ))}
-        </div>
-
-        <Input
-          className="max-w-xs"
-          placeholder="Search invoice reference..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
+    <div className="flex flex-col gap-6 p-6">
+      <div>
+        <h1 className="text-2xl font-semibold">Payments</h1>
+        <p className="text-sm text-muted-foreground">
+          Payment activity across all invoices.
+        </p>
       </div>
 
-      <table className="w-full border-collapse text-sm">
-        <thead>
-          <tr className="border-b text-left">
-            <th className="py-2 pr-4">Payment ID</th>
-            <th className="py-2 pr-4">Invoice ID</th>
-            <th className="py-2 pr-4">Amount (ZAR)</th>
-            <th className="py-2 pr-4">Status</th>
-            <th className="py-2 pr-4">Date</th>
-          </tr>
-        </thead>
-        <tbody>
-          {/* Shown only when the filters leave nothing to display */}
-          {visiblePayments.length === 0 && (
-            <tr>
-              <td
-                colSpan={5}
-                className="py-6 text-center text-muted-foreground"
-              >
-                No payments match your search.
-              </td>
-            </tr>
-          )}
+      <div className="flex flex-wrap items-end gap-4">
+        <div className="flex flex-col gap-1.5">
+          <label className="text-sm font-medium">Status</label>
+          <Select
+            value={statusFilter}
+            onValueChange={(value) => setStatusFilter(value as StatusFilter)}
+          >
+            <SelectTrigger className="w-[160px]">
+              <SelectValue placeholder="All statuses" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ALL">All statuses</SelectItem>
+              <SelectItem value="SUCCESS">Success</SelectItem>
+              <SelectItem value="FAILED">Failed</SelectItem>
+              <SelectItem value="PENDING">Pending</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
 
-          {visiblePayments.map((payment) => (
-            <tr key={payment.paymentId} className="border-b">
-              <td className="py-2 pr-4">{payment.paymentId}</td>
-              <td className="py-2 pr-4">{payment.invoiceReference}</td>
-              <td className="py-2 pr-4">R{payment.amount.toFixed(2)}</td>
-              <td className="py-2 pr-4">
-                <span
-                  className={
-                    payment.paymentStatus === "SUCCESS"
-                      ? "text-green-600"
-                      : payment.paymentStatus === "FAILED"
-                        ? "text-red-600"
-                        : "text-yellow-600"
-                  }
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor="payment-date" className="text-sm font-medium">
+            Payment date
+          </label>
+          <Input
+            id="payment-date"
+            type="date"
+            value={dateFilter}
+            onChange={(e) => setDateFilter(e.target.value)}
+            className="w-[160px]"
+          />
+        </div>
+
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor="payment-search" className="text-sm font-medium">
+            Invoice reference
+          </label>
+          <Input
+            id="payment-search"
+            className="w-[220px]"
+            placeholder="Search reference..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
+
+        {(statusFilter !== "ALL" || dateFilter || search) && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              setStatusFilter("ALL");
+              setDateFilter("");
+              setSearch("");
+            }}
+          >
+            Clear filters
+          </Button>
+        )}
+      </div>
+
+      {loading && (
+        <p className="text-sm text-muted-foreground">Loading payments...</p>
+      )}
+      {error && <p className="text-sm text-destructive">Error: {error}</p>}
+
+      {!loading && !error && (
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Payment ID</TableHead>
+              <TableHead>Invoice reference</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Payment date</TableHead>
+              <TableHead className="text-right">Amount</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {visiblePayments.length === 0 ? (
+              <TableRow>
+                <TableCell
+                  colSpan={5}
+                  className="py-8 text-center text-muted-foreground"
                 >
-                  {payment.paymentStatus}
-                </span>
-              </td>
-              <td className="py-2 pr-4">
-                {new Date(payment.paymentDate).toLocaleString()}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+                  No payments found.
+                </TableCell>
+              </TableRow>
+            ) : (
+              visiblePayments.map((payment) => (
+                <TableRow key={payment.paymentId}>
+                  <TableCell>{payment.paymentId}</TableCell>
+                  <TableCell>{payment.invoiceReference}</TableCell>
+                  <TableCell>
+                    <Badge
+                      variant={
+                        payment.paymentStatus === "FAILED"
+                          ? "destructive"
+                          : payment.paymentStatus === "PENDING"
+                            ? "secondary"
+                            : "default"
+                      }
+                    >
+                      {payment.paymentStatus}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    {new Date(payment.paymentDate).toLocaleString()}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    R{payment.amount.toFixed(2)}
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      )}
     </div>
   );
 }
