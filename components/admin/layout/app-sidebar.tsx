@@ -1,4 +1,5 @@
 'use client';
+import { useEffect, useState } from 'react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import {
   Sidebar,
@@ -18,14 +19,57 @@ import {
 import { navGroups } from '@/config/nav-config';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { LogOut } from 'lucide-react';
+import { LogOut, UserRound } from 'lucide-react';
 import { Icons } from '@/components/icons/icons';
 import { ToggleTheme } from '@/components/layout/toogle-theme';
-import { clearSession } from '@/lib/auth/session';
+import { clearSession, getSession, type AuthSession } from '@/lib/auth/session';
+import { getAllManagers, getAllReceptionists } from '@/lib/api/staff';
+import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 
 export default function AppSidebar() {
   const pathname = usePathname();
   const router = useRouter();
+  const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
+  const [session, setSession] = useState<AuthSession | null>(null);
+  const [displayName, setDisplayName] = useState('');
+  const [nameLoadError, setNameLoadError] = useState(false);
+
+  useEffect(() => {
+    const currentSession = getSession();
+    setSession(currentSession);
+
+    if (!currentSession || currentSession.role === 'USER') return;
+    const staffSession = currentSession;
+
+    async function loadName() {
+      try {
+        const staff =
+          staffSession.role === 'ADMIN'
+            ? await getAllManagers()
+            : await getAllReceptionists();
+        const user = staff.find(
+          (member) => member.email.toLowerCase() === staffSession.email.toLowerCase()
+        );
+
+        if (user) {
+          setDisplayName(`${user.firstName} ${user.lastName}`.trim());
+        }
+      } catch {
+        setNameLoadError(true);
+      }
+    }
+
+    loadName();
+  }, []);
 
   function handleLogout() {
     clearSession();
@@ -90,12 +134,59 @@ export default function AppSidebar() {
       </SidebarContent>
       <SidebarFooter className='group-data-[collapsible=icon]:px-2 group-data-[collapsible=icon]:py-4'>
         <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton tooltip='Log out' onClick={handleLogout}>
-              <LogOut />
-              <span>Log out</span>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
+          {session && (
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                tooltip={`${displayName || session.email} · ${session.role}`}
+                className='h-auto min-h-12 cursor-default py-2'
+                aria-label={`Logged in as ${displayName || session.email}, ${session.role}`}
+              >
+                <UserRound />
+                <span className='flex min-w-0 flex-col items-start gap-0.5'>
+                  <span className='max-w-full truncate font-medium'>
+                    {displayName || session.email}
+                  </span>
+                  <span className='text-xs text-muted-foreground'>
+                    {session.role === 'ADMIN' ? 'Administrator' : 'Receptionist'}
+                  </span>
+                  {nameLoadError && (
+                    <span className='text-xs text-destructive'>
+                      Name unavailable
+                    </span>
+                  )}
+                </span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          )}
+          <Dialog open={logoutDialogOpen} onOpenChange={setLogoutDialogOpen}>
+            <SidebarMenuItem>
+              <DialogTrigger asChild>
+                <SidebarMenuButton tooltip='Log out'>
+                  <LogOut />
+                  <span>Log out</span>
+                </SidebarMenuButton>
+              </DialogTrigger>
+            </SidebarMenuItem>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Log out?</DialogTitle>
+                <DialogDescription>
+                  Are you sure you want to log out of Margin Hotel Admin?
+                </DialogDescription>
+              </DialogHeader>
+              <DialogFooter>
+                <Button
+                  variant='outline'
+                  onClick={() => setLogoutDialogOpen(false)}
+                >
+                  Cancel
+                </Button>
+                <Button variant='destructive' onClick={handleLogout}>
+                  Log out
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </SidebarMenu>
         <ToggleTheme />
       </SidebarFooter>
