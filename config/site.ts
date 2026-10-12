@@ -18,8 +18,8 @@ export const siteConfig = {
     directions: "On the Atlantic Seaboard promenade, 25 min from Cape Town International Airport",
   },
   phone: {
-    frontDesk: "123-456-7890",
-    reservations: "123-456-7890",
+    frontDesk: "+27 21 123 4567",
+    reservations: "+27 21 123 4568",
   },
   email: {
     reservations: "reservations@marginhotel.com",

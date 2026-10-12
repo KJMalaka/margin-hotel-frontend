@@ -13,7 +13,6 @@ import {
 import { Button } from "../ui/button";
 import { ToggleTheme } from "./toogle-theme";
 import { Logo } from "@/components/brand/logo";
-import { AuthButtons } from "@/components/auth/auth-buttons";
 
 interface RouteProps {
   href: string;
@@ -52,10 +51,13 @@ export const Navbar = () => {
         </nav>
 
         <div className="hidden lg:flex items-center gap-3">
-          <ToggleTheme className="w-auto text-ivory/80 hover:bg-white/10 hover:text-gold" />
           <Button asChild variant="gold" size="brand" className="h-10 px-6">
             <Link href="/book">Book Now</Link>
           </Button>
+          <Button asChild variant="goldOutline" size="brand" className="h-10 px-6">
+            <Link href="/login">Login</Link>
+          </Button>
+          <ToggleTheme className="w-auto text-ivory/80 hover:bg-white/10 hover:text-gold" />
         </div>
 
         {/* Mobile */}
@@ -72,34 +74,42 @@ export const Navbar = () => {
               </Button>
             </SheetTrigger>
 
-              <AuthButtons
-                layout="stack"
-                onNavigate={() => setIsOpen(false)}
-              />
+          <SheetContent className="w-full max-w-sm border-gold/25 bg-navy text-ivory">
+            <SheetHeader>
+              <SheetTitle className="font-heading text-left text-ivory">
+                Menu
+              </SheetTitle>
+            </SheetHeader>
 
+            <nav aria-label="Main" className="flex flex-col">
+              {routeList.map(({ href, label }) => (
+                <Link
+                  key={href}
+                  href={href}
+                  onClick={() => setIsOpen(false)}
+                  className={`${linkClass} border-b border-gold/15 py-4 text-xs`}
+                >
+                  {label}
+                </Link>
+              ))}
+            </nav>
+
+            <SheetFooter className="mt-6 flex-col gap-3 sm:flex-col sm:space-x-0">
+              <Button asChild variant="gold" className="w-full">
+                <Link href="/book" onClick={() => setIsOpen(false)}>
+                  Book Now
+                </Link>
+              </Button>
+              <Button asChild variant="goldOutline" className="w-full">
+                <Link href="/login" onClick={() => setIsOpen(false)}>
+                  Login
+                </Link>
+              </Button>
               <ToggleTheme />
             </SheetFooter>
           </SheetContent>
         </Sheet>
       </div>
-
-                <nav aria-label="Main" className="flex flex-col">
-                  {routeList.map(({ href, label }) => (
-                    <Link
-                      key={href}
-                      href={href}
-                      onClick={() => setIsOpen(false)}
-                      className={`${linkClass} border-b border-gold/15 py-4 text-xs`}
-                    >
-                      {label}
-                    </Link>
-                  ))}
-                </nav>
-              </div>
-
-      <div className="hidden lg:flex items-center gap-2">
-        <AuthButtons />
-        <ToggleTheme />
       </div>
     </header>
   );

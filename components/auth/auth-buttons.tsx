@@ -59,11 +59,6 @@ export function AuthButtons({ layout = "row", onNavigate }: AuthButtonsProps) {
             Login
           </Link>
         </Button>
-        <Button asChild className={stacked ? "w-full" : undefined}>
-          <Link href="/signup" onClick={onNavigate}>
-            Sign up
-          </Link>
-        </Button>
       </div>
     );
   }
