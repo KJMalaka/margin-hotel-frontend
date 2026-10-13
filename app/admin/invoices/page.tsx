@@ -20,6 +20,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { formatAdminDate } from '@/lib/date-format';
 import { AddInvoiceDialog } from '@/components/invoice/add-invoice-dialog';
 import { EditInvoiceDialog } from '@/components/invoice/edit-invoice-dialog';
 import {
@@ -166,7 +167,7 @@ export default function InvoicesPage() {
                       {invoice.status}
                     </Badge>
                   </TableCell>
-                  <TableCell>{invoice.issueDate}</TableCell>
+                  <TableCell>{formatAdminDate(invoice.issueDate)}</TableCell>
                   <TableCell className="text-right">
                     R{invoice.totalAmount.toFixed(2)}
                   </TableCell>

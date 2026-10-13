@@ -1,3 +1,14 @@
+import { Badge } from "@/components/ui/badge";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { formatAdminDate } from "@/lib/date-format";
+
 const demoStats = {
   totalBookings: 47,
   guestsCurrentlyStaying: 12,
@@ -37,28 +48,28 @@ export default function DashboardPage() {
       </div>
 
       <h2 className="text-lg font-semibold mb-3">Recent Bookings</h2>
-      <table className="w-full text-sm border-collapse">
-        <thead>
-          <tr className="border-b text-left">
-            <th className="py-2 pr-4">Guest</th>
-            <th className="py-2 pr-4">Room</th>
-            <th className="py-2 pr-4">Check-in</th>
-            <th className="py-2 pr-4">Channel</th>
-          </tr>
-        </thead>
-        <tbody>
-          {recentBookings.map((b, i) => (
-            <tr key={i} className="border-b">
-              <td className="py-2 pr-4">{b.guest}</td>
-              <td className="py-2 pr-4">{b.room}</td>
-              <td className="py-2 pr-4">{b.checkIn}</td>
-              <td className="py-2 pr-4">
-                <span className="text-xs border rounded px-2 py-0.5">{b.channel}</span>
-              </td>
-            </tr>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Guest</TableHead>
+            <TableHead>Room</TableHead>
+            <TableHead>Check-in</TableHead>
+            <TableHead>Channel</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {recentBookings.map((booking) => (
+            <TableRow key={`${booking.guest}-${booking.checkIn}`}>
+              <TableCell>{booking.guest}</TableCell>
+              <TableCell>{booking.room}</TableCell>
+              <TableCell>{formatAdminDate(booking.checkIn)}</TableCell>
+              <TableCell>
+                <Badge variant="secondary">{booking.channel}</Badge>
+              </TableCell>
+            </TableRow>
           ))}
-        </tbody>
-      </table>
+        </TableBody>
+      </Table>
     </div>
   );
 }

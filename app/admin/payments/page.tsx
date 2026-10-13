@@ -5,6 +5,7 @@ import { getPayments, type Payment } from "@/lib/api/payment";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { formatAdminDateTime } from "@/lib/date-format";
 import {
   Select,
   SelectContent,
@@ -171,7 +172,7 @@ export default function PaymentsPage() {
                     </Badge>
                   </TableCell>
                   <TableCell>
-                    {new Date(payment.paymentDate).toLocaleString()}
+                    {formatAdminDateTime(payment.paymentDate)}
                   </TableCell>
                   <TableCell className="text-right">
                     R{payment.amount.toFixed(2)}

@@ -4,6 +4,7 @@ import { useState } from "react";
 
 import { AddBookingDialog } from "@/components/booking/add-booking-dialog";
 import { ROOM_TYPE_LABELS, getRoomById } from "@/data/rooms";
+import { formatAdminDate } from "@/lib/date-format";
 import type { BookingChannel } from "@/lib/validations/booking-schema";
 
 interface BookingRow {
@@ -101,8 +102,8 @@ export default function BookingsPage() {
                             <td className="py-2 pr-4">{b.guestName}</td>
                             <td className="py-2 pr-4">{b.room}</td>
                             <td className="py-2 pr-4">{CHANNEL_LABELS[b.channel]}</td>
-                            <td className="py-2 pr-4">{b.checkInDate}</td>
-                            <td className="py-2 pr-4">{b.checkOutDate}</td>
+                            <td className="py-2 pr-4">{formatAdminDate(b.checkInDate)}</td>
+                            <td className="py-2 pr-4">{formatAdminDate(b.checkOutDate)}</td>
                             <td className="py-2 pr-4">
                                 <span className="text-green-600 font-medium">{b.status}</span>
                             </td>
