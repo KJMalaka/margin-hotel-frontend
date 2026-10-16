@@ -74,7 +74,7 @@ export default function AppSidebar() {
 
   function handleLogout() {
     clearSession();
-    router.replace('/login');
+    router.replace('/');
   }
 
   return (
