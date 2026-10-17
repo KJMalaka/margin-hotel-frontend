@@ -11,6 +11,7 @@ const STORAGE_KEY = "marginHotelAuth";
 export function saveSession(session: AuthSession): void {
   if (typeof window === "undefined") return;
   localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
+  window.dispatchEvent(new Event("auth-change"));
 }
 
 export function getSession(): AuthSession | null {
@@ -33,4 +34,5 @@ export function getToken(): string | null {
 export function clearSession(): void {
   if (typeof window === "undefined") return;
   localStorage.removeItem(STORAGE_KEY);
+  window.dispatchEvent(new Event("auth-change"));
 }

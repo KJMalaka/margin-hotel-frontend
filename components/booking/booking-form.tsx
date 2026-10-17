@@ -32,21 +32,10 @@ import {
 import { ROOM_TYPE_LABELS, roomList, type Room } from "@/data/rooms";
 
 export interface BookingFormProps {
-    /** Fixed booking channel for this instance of the form. */
     channel: BookingChannel;
-    /** Called after the booking is created successfully. */
     onSuccess?: (booking: BookingResponse, values: BookingFormValues) => void;
-    /** Hide the section titles when embedding inside another card/dialog. */
     compact?: boolean;
-    /**
-     * Pin the booking to a specific room instead of showing the room picker
-     * - used when the form is opened from that room's own page/dialog.
-     */
     fixedRoom?: Room;
-    /**
-     * Pre-fill the stay from the home page search bar (/book?checkIn=...).
-     * `guests` narrows the room picker to rooms that fit the party.
-     */
     initialStay?: {
         checkInDate?: string;
         checkOutDate?: string;
@@ -54,22 +43,6 @@ export interface BookingFormProps {
     };
 }
 
-/**
- * Guest details + room + stay dates. Eventually submitted to
- * POST /booking/create (see lib/api/booking.ts) - there's no live backend
- * for Room/Booking yet, so submitting here just mocks a response locally.
- * Swap `onSubmit` below for `createBooking(...)` once that endpoint exists.
- *
- * This is the one form used everywhere a booking is created:
- *  - guest-facing site -> <BookingForm channel="ONLINE" />
- *  - staff admin portal -> <BookingForm channel="WALK_IN" /> or "TELEPHONIC"
- *  - a specific room's page/dialog -> <BookingForm channel="ONLINE" fixedRoom={room} />
- *
- * Only the fixed `channel` (and optional `fixedRoom`) differ between
- * contexts; fields, validation, and submit behaviour are identical, so
- * channel-specific screens should wrap this component rather than
- * duplicate it.
- */
 export function BookingForm({ channel, onSuccess, compact, fixedRoom, initialStay }: BookingFormProps) {
     const [submittedBooking, setSubmittedBooking] = useState<BookingResponse | null>(null);
 
@@ -83,9 +56,6 @@ export function BookingForm({ channel, onSuccess, compact, fixedRoom, initialSta
         },
     });
 
-    // No Room endpoint yet - list available rooms from local demo data
-    // instead of hitting the server. Not needed at all when the room is
-    // already fixed by the caller.
     const availableRooms = fixedRoom
         ? []
         : roomList.filter(
@@ -95,29 +65,14 @@ export function BookingForm({ channel, onSuccess, compact, fixedRoom, initialSta
           );
 
     function onSubmit(values: BookingFormValues) {
-        // Booking endpoint isn't live yet - mock the response locally so
-        // the guest still gets a confirmation.
         const booking: BookingResponse = {
             bookingId: Math.floor(Math.random() * 90000) + 10000,
             guestId: `G-${Date.now()}`,
-            roomId: values.roomId,
+            roomId: fixedRoom?.roomId ?? values.roomId,
             checkInDate: values.checkInDate,
             checkOutDate: values.checkOutDate,
             channel,
         };
-
-        console.log("New booking request (mock - no backend yet)", {
-            channel,
-            guest: {
-                firstName: values.firstName,
-                lastName: values.lastName,
-                email: values.email,
-                contactNumber: values.contactNumber,
-            },
-            roomId: values.roomId,
-            checkInDate: values.checkInDate,
-            checkOutDate: values.checkOutDate,
-        });
 
         setSubmittedBooking(booking);
         form.reset({ ...bookingFormDefaultValues, roomId: fixedRoom?.roomId ?? "" });
@@ -131,9 +86,12 @@ export function BookingForm({ channel, onSuccess, compact, fixedRoom, initialSta
 
         return (
             <div className="rounded-lg border border-primary/30 bg-primary/5 p-6 text-center space-y-2">
-                <p className="font-semibold">Booking confirmed</p>
+                <p className="font-semibold">Booking request received</p>
                 <p className="text-sm text-muted-foreground">
-                    Booking #{submittedBooking.bookingId} for {roomLabel} has been created.
+                    Reference #{submittedBooking.bookingId} for {roomLabel}.
+                </p>
+                <p className="text-xs text-muted-foreground">
+                    Demo mode: this booking isn't saved yet.
                 </p>
                 <Button variant="secondary" onClick={() => setSubmittedBooking(null)}>
                     Create another booking

@@ -1,7 +1,8 @@
 "use client";
-import { Menu } from "lucide-react";
+import { Menu, UserRound } from "lucide-react";
 import React from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   Sheet,
   SheetContent,
@@ -13,6 +14,8 @@ import {
 import { Button } from "../ui/button";
 import { ToggleTheme } from "./toogle-theme";
 import { Logo } from "@/components/brand/logo";
+import { useSession } from "@/hooks/use-session";
+import { clearSession } from "@/lib/auth/session";
 
 interface RouteProps {
   href: string;
@@ -32,6 +35,14 @@ const linkClass =
 
 export const Navbar = () => {
   const [isOpen, setIsOpen] = React.useState(false);
+  const session = useSession();
+  const router = useRouter();
+
+  function handleLogout() {
+    clearSession();
+    setIsOpen(false);
+    router.replace("/");
+  }
 
   return (
     <header className="sticky top-0 z-40 w-full bg-navy border-b border-gold/25">
@@ -54,9 +65,31 @@ export const Navbar = () => {
           <Button asChild variant="gold" size="brand" className="h-10 px-6">
             <Link href="/book">Book Now</Link>
           </Button>
-          <Button asChild variant="goldOutline" size="brand" className="h-10 px-6">
-            <Link href="/login">Login</Link>
-          </Button>
+
+          {session ? (
+            <>
+              <span
+                className="flex max-w-[200px] items-center gap-2 text-sm text-ivory/85"
+                title={session.email}
+              >
+                <UserRound className="size-4 shrink-0 text-gold" />
+                <span className="truncate">{session.email}</span>
+              </span>
+              <Button
+                variant="goldOutline"
+                size="brand"
+                className="h-10 px-6"
+                onClick={handleLogout}
+              >
+                Logout
+              </Button>
+            </>
+          ) : (
+            <Button asChild variant="goldOutline" size="brand" className="h-10 px-6">
+              <Link href="/login">Login</Link>
+            </Button>
+          )}
+
           <ToggleTheme className="w-auto text-ivory/80 hover:bg-white/10 hover:text-gold" />
         </div>
 
@@ -74,42 +107,57 @@ export const Navbar = () => {
               </Button>
             </SheetTrigger>
 
-          <SheetContent className="w-full max-w-sm border-gold/25 bg-navy text-ivory">
-            <SheetHeader>
-              <SheetTitle className="font-heading text-left text-ivory">
-                Menu
-              </SheetTitle>
-            </SheetHeader>
+            <SheetContent className="w-full max-w-sm border-gold/25 bg-navy text-ivory">
+              <SheetHeader>
+                <SheetTitle className="font-heading text-left text-ivory">
+                  Menu
+                </SheetTitle>
+              </SheetHeader>
 
-            <nav aria-label="Main" className="flex flex-col">
-              {routeList.map(({ href, label }) => (
-                <Link
-                  key={href}
-                  href={href}
-                  onClick={() => setIsOpen(false)}
-                  className={`${linkClass} border-b border-gold/15 py-4 text-xs`}
-                >
-                  {label}
-                </Link>
-              ))}
-            </nav>
+              {session && (
+                <div className="mt-4 flex items-center gap-2 text-sm text-ivory/85">
+                  <UserRound className="size-4 shrink-0 text-gold" />
+                  <span className="truncate">{session.email}</span>
+                </div>
+              )}
 
-            <SheetFooter className="mt-6 flex-col gap-3 sm:flex-col sm:space-x-0">
-              <Button asChild variant="gold" className="w-full">
-                <Link href="/book" onClick={() => setIsOpen(false)}>
-                  Book Now
-                </Link>
-              </Button>
-              <Button asChild variant="goldOutline" className="w-full">
-                <Link href="/login" onClick={() => setIsOpen(false)}>
-                  Login
-                </Link>
-              </Button>
-              <ToggleTheme />
-            </SheetFooter>
-          </SheetContent>
-        </Sheet>
-      </div>
+              <nav aria-label="Main" className="flex flex-col">
+                {routeList.map(({ href, label }) => (
+                  <Link
+                    key={href}
+                    href={href}
+                    onClick={() => setIsOpen(false)}
+                    className={`${linkClass} border-b border-gold/15 py-4 text-xs`}
+                  >
+                    {label}
+                  </Link>
+                ))}
+              </nav>
+
+              <SheetFooter className="mt-6 flex-col gap-3 sm:flex-col sm:space-x-0">
+                <Button asChild variant="gold" className="w-full">
+                  <Link href="/book" onClick={() => setIsOpen(false)}>
+                    Book Now
+                  </Link>
+                </Button>
+
+                {session ? (
+                  <Button variant="goldOutline" className="w-full" onClick={handleLogout}>
+                    Logout
+                  </Button>
+                ) : (
+                  <Button asChild variant="goldOutline" className="w-full">
+                    <Link href="/login" onClick={() => setIsOpen(false)}>
+                      Login
+                    </Link>
+                  </Button>
+                )}
+
+                <ToggleTheme />
+              </SheetFooter>
+            </SheetContent>
+          </Sheet>
+        </div>
       </div>
     </header>
   );
