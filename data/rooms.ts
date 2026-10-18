@@ -7,18 +7,16 @@ export const ROOM_TYPE_LABELS: Record<RoomOption["type"], string> = {
   SUITE: "Suite",
 };
 
-// Extends the assumed RoomOption contract (see lib/api/rooms.ts) with the
-// extra fields the rooms listing/detail pages need for display. Once a real
-// Room endpoint exists, swap roomList below for a getRooms() call and add
-// capacity/imageUrl/description to the backend DTO (or keep them as local
-// presentation data joined onto the API response).
+// The public room pages use this presentation data for descriptions and
+// imagery. Guest booking options and prices are loaded from the backend room
+// endpoint so bookings use database room IDs and current room status.
 export interface Room extends RoomOption {
   capacity: number;
   imageUrl: string;
   description: string;
 }
 
-// Hardcoded demo data - there's no Room endpoint on the backend yet.
+// Presentation-only demo content; this list is not used for guest checkout.
 export const roomList: Room[] = [
   {
     roomId: "R001",

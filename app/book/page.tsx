@@ -40,7 +40,7 @@ export default function BookPage({ searchParams }: BookPageProps) {
                     as="h1"
                     eyebrow="Reservations"
                     title="Book your stay"
-                    description="Enter your details and pick a room - we'll confirm your booking right away."
+                    description="Enter your details, review your stay, and complete your reservation."
                     className="mb-12"
                 />
 

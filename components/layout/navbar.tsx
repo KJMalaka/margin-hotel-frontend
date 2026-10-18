@@ -1,5 +1,5 @@
 "use client";
-import { Menu, UserRound } from "lucide-react";
+import { ChevronDown, Menu, UserRound } from "lucide-react";
 import React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -33,10 +33,51 @@ const routeList: RouteProps[] = [
 const linkClass =
   "font-heading text-[0.7rem] font-medium uppercase tracking-brand text-ivory/85 transition-colors duration-300 hover:text-gold focus-visible:text-gold";
 
+function AccountMenu({
+  name,
+  onLogout,
+  mobile = false,
+}: {
+  name: string;
+  onLogout: () => void;
+  mobile?: boolean;
+}) {
+  return (
+    <details className={`group relative ${mobile ? "w-full" : ""}`}>
+      <summary
+        aria-label={`${name} account menu`}
+        className={`flex cursor-pointer list-none items-center gap-2 text-sm text-ivory/85 marker:hidden hover:text-gold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold ${
+          mobile ? "w-full py-2" : "max-w-[220px]"
+        }`}
+      >
+        <UserRound className="size-4 shrink-0 text-gold" />
+        <span className="truncate">{name}</span>
+        <ChevronDown className="size-4 shrink-0 transition-transform group-open:rotate-180" />
+      </summary>
+      <div
+        className={`absolute right-0 z-50 mt-2 min-w-40 rounded-md border border-gold/25 bg-navy p-1 shadow-lg ${
+          mobile ? "left-0 right-auto w-full" : ""
+        }`}
+      >
+        <button
+          type="button"
+          onClick={onLogout}
+          className="w-full rounded-sm px-3 py-2 text-left text-sm text-ivory/85 transition-colors hover:bg-white/10 hover:text-gold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+        >
+          Logout
+        </button>
+      </div>
+    </details>
+  );
+}
+
 export const Navbar = () => {
   const [isOpen, setIsOpen] = React.useState(false);
   const session = useSession();
   const router = useRouter();
+  const accountName =
+    [session?.firstName, session?.lastName].filter(Boolean).join(" ") ||
+    "My account";
 
   function handleLogout() {
     clearSession();
@@ -67,23 +108,7 @@ export const Navbar = () => {
           </Button>
 
           {session ? (
-            <>
-              <span
-                className="flex max-w-[200px] items-center gap-2 text-sm text-ivory/85"
-                title={session.email}
-              >
-                <UserRound className="size-4 shrink-0 text-gold" />
-                <span className="truncate">{session.email}</span>
-              </span>
-              <Button
-                variant="goldOutline"
-                size="brand"
-                className="h-10 px-6"
-                onClick={handleLogout}
-              >
-                Logout
-              </Button>
-            </>
+            <AccountMenu name={accountName} onLogout={handleLogout} />
           ) : (
             <Button asChild variant="goldOutline" size="brand" className="h-10 px-6">
               <Link href="/login">Login</Link>
@@ -115,9 +140,12 @@ export const Navbar = () => {
               </SheetHeader>
 
               {session && (
-                <div className="mt-4 flex items-center gap-2 text-sm text-ivory/85">
-                  <UserRound className="size-4 shrink-0 text-gold" />
-                  <span className="truncate">{session.email}</span>
+                <div className="mt-4">
+                  <AccountMenu
+                    name={accountName}
+                    mobile
+                    onLogout={handleLogout}
+                  />
                 </div>
               )}
 
@@ -141,11 +169,7 @@ export const Navbar = () => {
                   </Link>
                 </Button>
 
-                {session ? (
-                  <Button variant="goldOutline" className="w-full" onClick={handleLogout}>
-                    Logout
-                  </Button>
-                ) : (
+                {!session && (
                   <Button asChild variant="goldOutline" className="w-full">
                     <Link href="/login" onClick={() => setIsOpen(false)}>
                       Login

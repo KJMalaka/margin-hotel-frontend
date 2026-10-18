@@ -5,12 +5,18 @@ export interface Payment {
   amount: number;
   paymentStatus: "SUCCESS" | "FAILED" | "PENDING";
   paymentDate: string;
+  invoiceId?: number;
   invoiceReference: string;
 }
 
 export interface CreatePaymentRequest {
   amount: number;
-  invoiceReference: string;
+  paymentStatus: Payment["paymentStatus"];
+  invoiceId: number;
+}
+
+export interface DemoCheckoutRequest {
+  invoiceId: number;
 }
 
 export async function getPayments(): Promise<Payment[]> {
@@ -27,6 +33,13 @@ export async function createPayment(
   data: CreatePaymentRequest
 ): Promise<Payment> {
   const response = await api.post<Payment>("/payment/create", data);
+  return response.data;
+}
+
+export async function createDemoCheckout(
+  data: DemoCheckoutRequest
+): Promise<Payment> {
+  const response = await api.post<Payment>("/payment/checkout", data);
   return response.data;
 }
 

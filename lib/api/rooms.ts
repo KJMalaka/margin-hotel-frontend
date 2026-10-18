@@ -1,6 +1,18 @@
 import { apiFetch } from "@/lib/api/client";
 
-// Matches za.ac.cput.domain.Room / RoomFactory on the backend.
+export type ApiRoomType = "SINGLE" | "DOUBLE" | "SUITE";
+export type ApiRoomStatus = "AVAILABLE" | "OCCUPIED" | "MAINTENANCE";
+
+// Shape returned by GET /room/all.
+export interface ApiRoom {
+  roomId: number;
+  roomNumber: number;
+  roomType: ApiRoomType;
+  pricePerNight: number;
+  roomStatus: ApiRoomStatus;
+}
+
+// Presentation-only room shape used by the public room pages.
 export interface RoomOption {
   roomId: string;
   roomNumber: number;
@@ -9,12 +21,6 @@ export interface RoomOption {
   status: "AVAILABLE" | "OCCUPIED";
 }
 
-/**
- * ASSUMED endpoint — following the /{resource}/getAll convention used
- * elsewhere in this project. Confirm the actual path once the Room
- * controller exists, and swap this for an availability-aware endpoint
- * (e.g. filtered by the selected dates) when the backend supports it.
- */
 export function getRooms() {
-  return apiFetch<RoomOption[]>("/room/getAll");
+  return apiFetch<ApiRoom[]>("/room/all");
 }

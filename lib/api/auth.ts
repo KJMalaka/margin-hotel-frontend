@@ -6,6 +6,9 @@ export interface AuthUserResponse {
   jwtToken: string;
   email: string;
   role: UserRole;
+  firstName?: string;
+  lastName?: string;
+  mobile?: string;
 }
 
 export interface CheckEmailResponse {

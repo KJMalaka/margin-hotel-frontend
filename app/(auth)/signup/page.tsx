@@ -86,7 +86,12 @@ export default function SignupPage() {
         mobile: values.mobile,
         password: values.password,
       });
-      saveSession(result);
+      saveSession({
+        ...result,
+        firstName: values.firstName,
+        lastName: values.lastName,
+        mobile: values.mobile,
+      });
       // Public signup always creates a USER account.
       router.push("/");
     } catch (err) {

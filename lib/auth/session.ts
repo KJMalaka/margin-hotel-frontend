@@ -4,6 +4,9 @@ export type AuthSession = {
   jwtToken: string;
   email: string;
   role: "USER" | "ADMIN" | "RECEPTIONIST";
+  firstName?: string;
+  lastName?: string;
+  mobile?: string;
 };
 
 const STORAGE_KEY = "marginHotelAuth";
