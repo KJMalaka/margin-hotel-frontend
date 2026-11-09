@@ -3,6 +3,14 @@
 import { useState } from "react";
 
 import { AddBookingDialog } from "@/components/booking/add-booking-dialog";
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "@/components/ui/table";
 import { ROOM_TYPE_LABELS, getRoomById } from "@/data/rooms";
 import { formatAdminDate } from "@/lib/date-format";
 import type { BookingChannel } from "@/lib/validations/booking-schema";
@@ -83,34 +91,47 @@ export default function BookingsPage() {
                 />
             </div>
 
-            <table className="w-full text-sm border-collapse">
-                <thead>
-                    <tr className="border-b text-left">
-                        <th className="py-2 pr-4">Booking ID</th>
-                        <th className="py-2 pr-4">Guest</th>
-                        <th className="py-2 pr-4">Room</th>
-                        <th className="py-2 pr-4">Channel</th>
-                        <th className="py-2 pr-4">Check-in</th>
-                        <th className="py-2 pr-4">Check-out</th>
-                        <th className="py-2 pr-4">Status</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {bookings.map((b) => (
-                        <tr key={b.bookingId} className="border-b">
-                            <td className="py-2 pr-4">{b.bookingId}</td>
-                            <td className="py-2 pr-4">{b.guestName}</td>
-                            <td className="py-2 pr-4">{b.room}</td>
-                            <td className="py-2 pr-4">{CHANNEL_LABELS[b.channel]}</td>
-                            <td className="py-2 pr-4">{formatAdminDate(b.checkInDate)}</td>
-                            <td className="py-2 pr-4">{formatAdminDate(b.checkOutDate)}</td>
-                            <td className="py-2 pr-4">
-                                <span className="text-green-600 font-medium">{b.status}</span>
-                            </td>
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
+            <Table>
+                <TableHeader>
+                    <TableRow>
+                        <TableHead>Booking ID</TableHead>
+                        <TableHead>Guest</TableHead>
+                        <TableHead>Room</TableHead>
+                        <TableHead>Channel</TableHead>
+                        <TableHead>Check-in</TableHead>
+                        <TableHead>Check-out</TableHead>
+                        <TableHead>Status</TableHead>
+                    </TableRow>
+                </TableHeader>
+                <TableBody>
+                    {bookings.length === 0 ? (
+                        <TableRow>
+                            <TableCell
+                                colSpan={7}
+                                className="py-8 text-center text-muted-foreground"
+                            >
+                                No bookings found.
+                            </TableCell>
+                        </TableRow>
+                    ) : (
+                        bookings.map((b) => (
+                            <TableRow key={b.bookingId}>
+                                <TableCell>{b.bookingId}</TableCell>
+                                <TableCell>{b.guestName}</TableCell>
+                                <TableCell>{b.room}</TableCell>
+                                <TableCell>{CHANNEL_LABELS[b.channel]}</TableCell>
+                                <TableCell>{formatAdminDate(b.checkInDate)}</TableCell>
+                                <TableCell>{formatAdminDate(b.checkOutDate)}</TableCell>
+                                <TableCell>
+                                    <span className="text-green-600 font-medium">
+                                        {b.status}
+                                    </span>
+                                </TableCell>
+                            </TableRow>
+                        ))
+                    )}
+                </TableBody>
+            </Table>
         </div>
     );
 }
