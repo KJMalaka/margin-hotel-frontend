@@ -5,9 +5,9 @@ import { RoomCard } from "@/components/rooms/room-card";
 import { roomList } from "@/data/rooms";
 
 export const metadata = {
-  title: "Our Rooms · Margin Hotel",
+  title: "Our Rooms | Margin Hotel",
   description:
-    "Browse available rooms at Margin Hotel and view full details before you book.",
+    "Browse every room and suite at Margin Hotel and view full details before you book.",
 };
 
 export default function RoomsPage() {
@@ -20,7 +20,7 @@ export default function RoomsPage() {
           as="h1"
           eyebrow="Rooms & Suites"
           title="Find your perfect stay"
-          description="Browse our rooms and view full details before you book."
+          description="From cosy rooms for solo travellers to generous family suites - each one light-filled, calm and made for slow mornings. Prices are per room, per night."
           className="mb-14"
         />
 
@@ -30,6 +30,7 @@ export default function RoomsPage() {
           ))}
         </div>
       </main>
+
       <FooterSection />
     </>
   );

@@ -129,6 +129,7 @@ export default function SignupPage() {
         {step === "email" && (
           <Form {...emailForm}>
             <form
+              method="post"
               onSubmit={emailForm.handleSubmit(onCheckEmail)}
               className="space-y-4"
             >
@@ -158,6 +159,7 @@ export default function SignupPage() {
         {step === "details" && (
           <Form {...detailsForm}>
             <form
+              method="post"
               onSubmit={detailsForm.handleSubmit(onRegister)}
               className="space-y-4"
             >
