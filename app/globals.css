@@ -48,7 +48,10 @@ html {
     --ring: 205.6 70% 32.4%; /* ocean blue */
     --radius: 0.25rem;
 
-    --sidebar-background: 43 41% 97%;
+    /* Sidebar reuses the --card tone (not --background) so the floating
+       menu panel reads as a distinct surface instead of blending into the
+       page behind it. */
+    --sidebar-background: 0 0% 100%;
     --sidebar-foreground: 205.5 70% 22.4%;
     --sidebar-primary: 205.5 70% 22.4%;
     --sidebar-primary-foreground: 43 41% 97%;
@@ -87,7 +90,7 @@ html {
     --input: 205 42% 26%;
     --ring: 44 45% 60%;
 
-    --sidebar-background: 205 71% 12.4%;
+    --sidebar-background: 205 62% 16%;
     --sidebar-foreground: 43 41% 95%;
     --sidebar-primary: 44 45% 60%;
     --sidebar-primary-foreground: 205 71% 12.4%;

@@ -78,7 +78,7 @@ export default function AppSidebar() {
   }
 
   return (
-    <Sidebar collapsible='icon'>
+    <Sidebar collapsible='icon' variant='floating'>
       <SidebarHeader className='px-4 py-3 font-bold group-data-[collapsible=icon]:px-2 group-data-[collapsible=icon]:py-4'>
         <Link href="/" aria-label="Margin Hotel home" className="shrink-0 group-data-[collapsible=icon]:mx-auto">
           <Logo className="text-[0.8rem] sm:text-sm group-data-[collapsible=icon]:hidden" markClassName="size-7" />
