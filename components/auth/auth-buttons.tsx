@@ -73,7 +73,7 @@ export function AuthButtons({ layout = "row", onNavigate }: AuthButtonsProps) {
           variant="ghost"
           className={stacked ? "justify-start text-base" : undefined}
         >
-          <Link href="/admin/invoices" onClick={onNavigate}>
+          <Link href="/admin/dashboard" onClick={onNavigate}>
             Admin
           </Link>
         </Button>

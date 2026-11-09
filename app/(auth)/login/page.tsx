@@ -41,8 +41,8 @@ export default function LoginPage() {
     try {
       const result = await login(values);
       saveSession(result);
-      // Staff (ADMIN / RECEPTIONIST) go to the admin area; guests (USER) go to the front page.
-      router.push(result.role === "USER" ? "/" : "/admin/invoices");
+      // Staff (ADMIN / RECEPTIONIST) go to the admin dashboard; guests (USER) go to the front page.
+      router.push(result.role === "USER" ? "/" : "/admin/dashboard");
     } catch (err) {
       // Login/register return plain-text error bodies, not JSON
       // (e.g. "Invalid email or password"), so read err.response.data directly.
