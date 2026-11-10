@@ -137,60 +137,66 @@ export default function AppSidebar() {
         ))}
       </SidebarContent>
       <SidebarFooter className='border-t border-sidebar-border group-data-[collapsible=icon]:px-2 group-data-[collapsible=icon]:py-4'>
-        <SidebarMenu>
-          {session && (
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                tooltip={`${displayName || session.email} · ${session.role}`}
-                className='h-auto min-h-12 cursor-default py-2 hover:bg-transparent active:bg-transparent'
-                aria-label={`Logged in as ${displayName || session.email}, ${session.role}`}
-              >
-                <UserRound />
-                <span className='flex min-w-0 flex-col items-start gap-0.5'>
-                  <span className='max-w-full truncate font-bold'>
-                    {displayName || session.email}
-                  </span>
-                  <span className='text-sm text-sidebar-foreground/80'>
-                    {session.role === 'ADMIN' ? 'Administrator' : 'Receptionist'}
-                  </span>
-                  {nameLoadError && (
-                    <span className='text-sm text-sidebar-foreground/80'>
-                      Name unavailable
+        {/* Account card (teammate's layout): theme switch on top, then who is
+            signed in, then log out. Flattens when the sidebar is collapsed. */}
+        <div className='rounded-md border border-sidebar-border bg-sidebar-accent/40 p-2 group-data-[collapsible=icon]:border-0 group-data-[collapsible=icon]:bg-transparent group-data-[collapsible=icon]:p-0'>
+          <ToggleTheme className='text-sidebar-foreground hover:bg-sidebar-accent group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0' />
+          <SidebarMenu>
+            {session && (
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  tooltip={`${displayName || session.email} · ${session.role}`}
+                  className='h-auto min-h-12 cursor-default py-2 hover:bg-transparent active:bg-transparent'
+                  aria-label={`Logged in as ${displayName || session.email}, ${session.role}`}
+                >
+                  <UserRound />
+                  <span className='flex min-w-0 flex-col items-start gap-0.5'>
+                    <span className='max-w-full truncate font-bold'>
+                      {displayName || session.email}
                     </span>
-                    <span className='text-xs text-muted-foreground'>
+                    <span className='text-sm text-sidebar-foreground/80'>
                       {session.role === 'ADMIN' ? 'Administrator' : 'Receptionist'}
                     </span>
                     {nameLoadError && (
-                      <span className='text-xs text-destructive'>
+                      <span className='text-sm text-sidebar-foreground/80'>
                         Name unavailable
                       </span>
                     )}
                   </span>
                 </SidebarMenuButton>
-              </DialogTrigger>
-            </SidebarMenuItem>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Log out?</DialogTitle>
-                <DialogDescription>
-                  Are you sure you want to log out of Margin Hotel Admin?
-                </DialogDescription>
-              </DialogHeader>
-              <DialogFooter>
-                <Button
-                  variant='secondary'
-                  onClick={() => setLogoutDialogOpen(false)}
-                >
-                  Cancel
-                </Button>
-                <Button variant='destructive' onClick={handleLogout}>
-                  Log out
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-        </SidebarMenu>
-        <ToggleTheme className='text-sidebar-foreground hover:bg-sidebar-accent group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0' />
+              </SidebarMenuItem>
+            )}
+            <Dialog open={logoutDialogOpen} onOpenChange={setLogoutDialogOpen}>
+              <SidebarMenuItem>
+                <DialogTrigger asChild>
+                  <SidebarMenuButton tooltip='Log out'>
+                    <LogOut />
+                    <span>Log out</span>
+                  </SidebarMenuButton>
+                </DialogTrigger>
+              </SidebarMenuItem>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Log out?</DialogTitle>
+                  <DialogDescription>
+                    Are you sure you want to log out of Margin Hotel Admin?
+                  </DialogDescription>
+                </DialogHeader>
+                <DialogFooter>
+                  <Button
+                    variant='secondary'
+                    onClick={() => setLogoutDialogOpen(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button variant='destructive' onClick={handleLogout}>
+                    Log out
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          </SidebarMenu>
+        </div>
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>
