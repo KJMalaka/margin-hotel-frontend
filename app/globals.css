@@ -300,3 +300,73 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* Print only the booking receipt ("Print receipt" on the confirmation
+   step) - restored from the booking-flow update (46edf4b). */
+@media print {
+  html,
+  body {
+    height: auto !important;
+    overflow: visible !important;
+    background: #fff !important;
+  }
+
+  body * {
+    visibility: hidden !important;
+  }
+
+  .booking-receipt,
+  .booking-receipt * {
+    visibility: visible !important;
+  }
+
+  .booking-receipt {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    color: #111 !important;
+    background: #fff !important;
+    font-size: 10pt !important;
+    line-height: 1.35 !important;
+    break-before: avoid-page !important;
+    break-after: avoid-page !important;
+    page-break-before: avoid !important;
+    page-break-after: avoid !important;
+  }
+
+  .booking-receipt .booking-progress,
+  .booking-receipt .receipt-actions {
+    display: none !important;
+  }
+
+  .booking-receipt * {
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+
+  .booking-receipt {
+    break-inside: avoid-page !important;
+    page-break-inside: avoid !important;
+  }
+
+  .booking-receipt * {
+    color: #111 !important;
+    border-color: #cbd5e1 !important;
+  }
+
+  .booking-receipt h2 {
+    font-size: 24pt !important;
+  }
+
+  .booking-receipt dd,
+  .booking-receipt dt,
+  .booking-receipt p,
+  .booking-receipt span {
+    font-size: 9pt !important;
+  }
+}
+
