@@ -9,7 +9,9 @@ import { Check, Mail } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Alert } from "@/components/ui/alert";
+import { LoadingState } from "@/components/ui/state";
+import { StatusBadge } from "@/components/ui/status-badge";
 import {
     Form,
     FormControl,
@@ -41,10 +43,11 @@ import { useSession } from "@/hooks/use-session";
 import {
     bookingFormDefaultValues,
     bookingFormSchema,
+    localIsoDate,
     type BookingChannel,
     type BookingFormValues,
 } from "@/lib/validations/booking-schema";
-import { getRoomById, ROOM_TYPE_LABELS, roomList, type Room } from "@/data/rooms";
+import { ROOM_TYPE_LABELS, type Room } from "@/data/rooms";
 import { PaymentMethodStep } from "@/components/booking/payment-method-step";
 import {
     PaymentProcessing,
@@ -202,24 +205,13 @@ export function BookingForm({ channel, onSuccess, compact, fixedRoom, initialSta
         useState<SimulatedPaymentDetails | null>(null);
     const [confirmation, setConfirmation] = useState<BookingConfirmation | null>(null);
     const [apiRooms, setApiRooms] = useState<ApiRoom[]>([]);
-    const [roomsLoading, setRoomsLoading] = useState(channel === "ONLINE");
+    const [roomsLoading, setRoomsLoading] = useState(true);
+    const [savingStaffBooking, setSavingStaffBooking] = useState(false);
     const [roomsError, setRoomsError] = useState<string | null>(null);
     const session = useSession();
-    const stepTopRef = useRef<HTMLElement>(null);
-    const currentStep: 1 | 2 | 3 = confirmation ? 3 : checkout ? 2 : 1;
-    const previousStepRef = useRef(currentStep);
-
-    useEffect(() => {
-        if (previousStepRef.current === currentStep) return;
-        previousStepRef.current = currentStep;
-        stepTopRef.current
-            ?.closest<HTMLElement>('[role="dialog"]')
-            ?.scrollTo({ top: 0, behavior: "smooth" });
-    }, [currentStep]);
-
-    const progress = channel === "ONLINE"
-        ? <BookingProgress currentStep={currentStep} stepTopRef={stepTopRef} />
-        : null;
+    // Staff book on a guest's behalf, so their own details must never be
+    // prefilled into the guest fields - only a signed-in guest's are.
+    const isGuestSelfBooking = session?.role === "USER";
 
     const form = useForm<BookingFormValues>({
         resolver: zodResolver(bookingFormSchema),
@@ -231,8 +223,16 @@ export function BookingForm({ channel, onSuccess, compact, fixedRoom, initialSta
         },
     });
 
+    // Date limits: no past check-in, check-out at least one night later.
+    // "today" is set on the client so it uses the guest's own timezone and
+    // doesn't mismatch the server-rendered HTML.
+    const [today, setToday] = useState<string>();
+    useEffect(() => setToday(localIsoDate()), []);
+    const watchedCheckIn = form.watch("checkInDate");
+    const minCheckOut = watchedCheckIn ? nextDay(watchedCheckIn) : today && nextDay(today);
+
     useEffect(() => {
-        if (session?.role !== "USER") return;
+        if (!session || session.role !== "USER") return;
 
         if (session.firstName) {
             form.setValue("firstName", session.firstName);
@@ -247,8 +247,6 @@ export function BookingForm({ channel, onSuccess, compact, fixedRoom, initialSta
     }, [form, session]);
 
     useEffect(() => {
-        if (channel !== "ONLINE") return;
-
         let cancelled = false;
         setRoomsLoading(true);
         setRoomsError(null);
@@ -284,15 +282,13 @@ export function BookingForm({ channel, onSuccess, compact, fixedRoom, initialSta
         };
     }, [channel, fixedRoom, form]);
 
-    const availableRooms = fixedRoom
-        ? []
-        : roomList.filter(
-              (room) =>
-                  room.status === "AVAILABLE" &&
-                  room.capacity >= (initialStay?.guests ?? 1)
-          );
-    const availableApiRooms = apiRooms.filter(
-        (room) => room.roomStatus === "AVAILABLE"
+    // Guests see rooms free right now. Staff may book any room that isn't
+    // under maintenance (e.g. a future stay in a room occupied today); the
+    // backend rejects overlapping dates with a 409.
+    const availableApiRooms = apiRooms.filter((room) =>
+        channel === "ONLINE"
+            ? room.roomStatus === "AVAILABLE"
+            : room.roomStatus !== "MAINTENANCE"
     );
     const selectedFixedApiRoom = fixedRoom
         ? apiRooms.find((room) => room.roomNumber === fixedRoom.roomNumber)
@@ -337,25 +333,60 @@ export function BookingForm({ channel, onSuccess, compact, fixedRoom, initialSta
             return;
         }
 
-        const booking: BookingResponse = {
-            bookingId: Math.floor(Math.random() * 90000) + 10000,
-            guestId: `G-${Date.now()}`,
-            roomId: getRoomById(values.roomId)?.roomId ?? values.roomId,
-            checkInDate: values.checkInDate,
-            checkOutDate: values.checkOutDate,
-            channel,
-        };
+        return saveStaffBooking(values);
+    }
 
-        setSubmittedBooking(booking);
-        form.reset({
-            ...bookingFormDefaultValues,
-            firstName: session?.role === "USER" ? session.firstName ?? "" : "",
-            lastName: session?.role === "USER" ? session.lastName ?? "" : "",
-            email: session?.role === "USER" ? session.email : "",
-            contactNumber: session?.role === "USER" ? session.mobile ?? "" : "",
-            roomId: fixedRoom?.roomId ?? "",
-        });
-        onSuccess?.(booking, values);
+    /** Walk-in / telephonic booking made by staff: saved straight to the backend. */
+    async function saveStaffBooking(values: BookingFormValues) {
+        if (savingStaffBooking) return;
+        const room = apiRooms.find((item) => String(item.roomId) === values.roomId);
+        if (!room) {
+            form.setError("roomId", { message: "Select a room listed by the hotel system" });
+            return;
+        }
+
+        setSavingStaffBooking(true);
+        setCheckoutError(null);
+        try {
+            // Reuse the guest record if this email is already known.
+            let guest: Guest | undefined;
+            try {
+                guest = await findGuestByEmail(values.email);
+            } catch (error) {
+                if (!isAxiosError(error) || error.response?.status !== 404) throw error;
+            }
+            if (!guest) {
+                guest = await createGuest({
+                    firstName: values.firstName,
+                    middleName: "",
+                    lastName: values.lastName,
+                    email: values.email,
+                    mobile: values.contactNumber,
+                });
+            }
+
+            const booking = await createBooking({
+                bookingChannel: channel,
+                guestId: guest.guestId,
+                roomId: room.roomId,
+                checkInDate: toCheckInDateTime(values.checkInDate),
+                checkOutDate: toCheckOutDateTime(values.checkOutDate),
+            });
+
+            setSubmittedBooking(booking);
+            form.reset({ ...bookingFormDefaultValues });
+            onSuccess?.(booking, values);
+        } catch (error) {
+            if (isAxiosError(error) && error.response?.status === 409) {
+                form.setError("roomId", {
+                    message: `Room ${room.roomNumber} is already booked for some of these dates. Choose other dates or another room.`,
+                });
+            } else {
+                setCheckoutError(getCheckoutErrorMessage(error));
+            }
+        } finally {
+            setSavingStaffBooking(false);
+        }
     }
 
     async function completePayment(details: SimulatedPaymentDetails) {
@@ -530,72 +561,68 @@ export function BookingForm({ channel, onSuccess, compact, fixedRoom, initialSta
             <section aria-live="polite" className="booking-receipt space-y-6">
                 {progress}
                 <div className="flex flex-col items-center gap-3 text-center">
-                    <span className="flex h-16 w-16 items-center justify-center rounded-full bg-navy dark:bg-gold">
-                        <Check className="h-8 w-8 text-gold dark:text-navy-midnight" aria-hidden="true" />
+                    <span className="flex size-16 items-center justify-center rounded-full bg-success-bg">
+                        <Check className="size-8 text-success" aria-hidden="true" />
                     </span>
-                    <p className="font-heading text-xs uppercase tracking-brand text-ocean dark:text-gold">
-                        Booking confirmed
-                    </p>
-                    <h2 className="font-display text-4xl leading-none sm:text-5xl">
-                        Your stay is confirmed
-                    </h2>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="eyebrow">Booking confirmed</p>
+                    <h2 className="text-3xl sm:text-4xl">Your stay is confirmed</h2>
+                    <p className="text-muted-foreground">
                         Thank you, {values.firstName}. We look forward to welcoming you to Margin Hotel.
                     </p>
                 </div>
 
-                <div className="flex items-start gap-3 border bg-secondary p-4">
-                    <Mail className="mt-0.5 h-5 w-5 shrink-0" aria-hidden="true" />
-                    <p className="text-sm leading-relaxed">
+                <div className="flex items-start gap-3 rounded-md border-l-4 border-info bg-info-bg p-4">
+                    <Mail className="mt-0.5 size-5 shrink-0 text-info" aria-hidden="true" />
+                    <p>
                         A receipt and booking confirmation have been sent to{" "}
                         <strong>{values.email}</strong>. Check your spam folder if it doesn&apos;t
                         arrive within a few minutes.
                     </p>
                 </div>
 
-                <div className="border bg-card">
-                    <dl className="grid grid-cols-1 border-b sm:grid-cols-3">
-                        <div className="border-b p-4 sm:border-b-0 sm:border-r">
-                            <dt className="text-xs uppercase tracking-widest text-muted-foreground">Booking ref</dt>
-                            <dd className="mt-1 text-lg font-semibold">#{booking.bookingId}</dd>
+                <div className="overflow-hidden rounded-lg border border-border bg-card">
+                    <dl className="grid grid-cols-1 border-b border-border bg-muted sm:grid-cols-3">
+                        <div className="border-b border-border p-4 sm:border-b-0 sm:border-r">
+                            <dt className="font-bold text-muted-foreground">Booking ref</dt>
+                            <dd className="mt-1 text-lg font-bold">#{booking.bookingId}</dd>
                         </div>
-                        <div className="border-b p-4 sm:border-b-0 sm:border-r">
-                            <dt className="text-xs uppercase tracking-widest text-muted-foreground">Invoice</dt>
-                            <dd className="mt-1 text-lg font-semibold">{invoice.reference}</dd>
+                        <div className="border-b border-border p-4 sm:border-b-0 sm:border-r">
+                            <dt className="font-bold text-muted-foreground">Invoice</dt>
+                            <dd className="mt-1 text-lg font-bold">{invoice.reference}</dd>
                         </div>
                         <div className="p-4">
-                            <dt className="text-xs uppercase tracking-widest text-muted-foreground">Payment</dt>
-                            <dd className="mt-1 font-semibold text-green-700 dark:text-green-400">
-                                {invoice.status}
-                                {payment && ` · #${payment.paymentId}`}
+                            <dt className="font-bold text-muted-foreground">Payment</dt>
+                            <dd className="mt-1 flex flex-wrap items-center gap-2">
+                                <StatusBadge status={invoice.status} />
+                                {payment && <span className="font-bold">#{payment.paymentId}</span>}
                             </dd>
                         </div>
                     </dl>
 
-                    <dl className="grid grid-cols-1 gap-4 p-4 text-sm sm:grid-cols-2">
+                    <dl className="grid grid-cols-1 gap-4 p-4 sm:grid-cols-2">
                         <div>
-                            <dt className="text-xs uppercase tracking-widest text-muted-foreground">Guest</dt>
+                            <dt className="font-bold text-muted-foreground">Guest</dt>
                             <dd className="mt-1">{values.firstName} {values.lastName}</dd>
                             <dd className="text-muted-foreground">{values.contactNumber}</dd>
                         </div>
                         <div>
-                            <dt className="text-xs uppercase tracking-widest text-muted-foreground">Room</dt>
+                            <dt className="font-bold text-muted-foreground">Room</dt>
                             <dd className="mt-1">{backendRoomLabel(room)}</dd>
                             <dd className="text-muted-foreground">
                                 {nights} {nights === 1 ? "night" : "nights"}
                             </dd>
                         </div>
                         <div>
-                            <dt className="text-xs uppercase tracking-widest text-muted-foreground">Check-in</dt>
+                            <dt className="font-bold text-muted-foreground">Check-in</dt>
                             <dd className="mt-1">{formatStayDate(values.checkInDate)} · from 2:00 PM</dd>
                         </div>
                         <div>
-                            <dt className="text-xs uppercase tracking-widest text-muted-foreground">Check-out</dt>
+                            <dt className="font-bold text-muted-foreground">Check-out</dt>
                             <dd className="mt-1">{formatStayDate(values.checkOutDate)} · by 11:00 AM</dd>
                         </div>
                     </dl>
 
-                    <div className="space-y-2 border-t p-4 text-sm">
+                    <div className="space-y-2 border-t border-border p-4">
                         <div className="flex justify-between gap-4">
                             <span>
                                 Room rate ({zar.format(room.pricePerNight)} × {nights}{" "}
@@ -613,9 +640,9 @@ export function BookingForm({ channel, onSuccess, compact, fixedRoom, initialSta
                                 })}
                             </span>
                         </div>
-                        <div className="flex items-baseline justify-between gap-4 border-t pt-3">
-                            <span className="font-semibold">Total paid</span>
-                            <span className="font-display text-3xl">{zar.format(total)}</span>
+                        <div className="flex items-baseline justify-between gap-4 border-t border-border pt-3">
+                            <span className="font-bold">Total paid</span>
+                            <span className="text-2xl font-bold tabular-nums">{zar.format(total)}</span>
                         </div>
                     </div>
                 </div>
@@ -623,22 +650,19 @@ export function BookingForm({ channel, onSuccess, compact, fixedRoom, initialSta
                 <div className="receipt-actions grid grid-cols-1 gap-3 sm:grid-cols-2">
                     <Button
                         type="button"
-                        variant="navyOutline"
-                        size="brand"
+                        variant="secondary"
                         onClick={() => window.print()}
                     >
                         Print receipt
                     </Button>
                     <Button
                         type="button"
-                        variant="gold"
-                        size="brand"
                         onClick={() => setConfirmation(null)}
                     >
                         Create another booking
                     </Button>
                 </div>
-                <p className="text-center text-xs text-muted-foreground">
+                <p className="text-center text-muted-foreground">
                     Your booking, invoice, and payment record have been saved. Payment
                     is simulated; no money was charged.
                 </p>
@@ -647,20 +671,28 @@ export function BookingForm({ channel, onSuccess, compact, fixedRoom, initialSta
     }
 
     if (submittedBooking) {
-        const roomLabel = fixedRoom
-            ? `Room ${fixedRoom.roomNumber} · ${ROOM_TYPE_LABELS[fixedRoom.type]}`
-            : `room ${submittedBooking.roomId}`;
+        const savedRoom = apiRooms.find(
+            (room) => String(room.roomId) === String(submittedBooking.roomId)
+        );
+        const roomLabel = savedRoom
+            ? backendRoomLabel(savedRoom)
+            : fixedRoom
+              ? `Room ${fixedRoom.roomNumber} · ${ROOM_TYPE_LABELS[fixedRoom.type]}`
+              : `room ${submittedBooking.roomId}`;
 
         return (
-            <div className="rounded-lg border border-primary/30 bg-primary/5 p-6 text-center space-y-2">
-                <p className="font-semibold">Booking request received</p>
-                <p className="text-sm text-muted-foreground">
+            <div role="status" className="space-y-2 rounded-lg border-l-4 border-success bg-success-bg p-5">
+                <p className="flex items-center gap-2 text-lg font-bold">
+                    <Check aria-hidden className="size-5 text-success" />
+                    Booking saved
+                </p>
+                <p>
                     Reference #{submittedBooking.bookingId} for {roomLabel}.
                 </p>
-                <p className="text-xs text-muted-foreground">
-                    Demo mode: this booking isn&apos;t saved yet.
+                <p className="text-muted-foreground">
+                    No payment was taken. Create an invoice from the Invoices page when the guest pays.
                 </p>
-                <Button variant="secondary" onClick={() => setSubmittedBooking(null)}>
+                <Button variant="secondary" className="mt-2" onClick={() => setSubmittedBooking(null)}>
                     Create another booking
                 </Button>
             </div>
@@ -689,130 +721,131 @@ export function BookingForm({ channel, onSuccess, compact, fixedRoom, initialSta
         const paymentIncomplete = Boolean(payment && payment.paymentStatus !== "SUCCESS");
 
         return (
-            <section className="space-y-5">
-                {progress}
-                <div className="mb-1">
-                    <h2 className="text-xl font-semibold">Review and pay</h2>
-                    <p className="mt-1 text-sm text-muted-foreground">
+            <section className="space-y-6">
+                <div>
+                    <h2 className="text-2xl">Review and pay</h2>
+                    <p className="mt-1 text-muted-foreground">
                         Check your stay details, then choose how you&apos;d like to pay.
                     </p>
                 </div>
 
-                <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]">
-                    <div className="space-y-4">
-                        {(booking || invoice || payment) && (
-                            <p className="text-xs text-muted-foreground">
-                                {booking && `Booking #${booking.bookingId} created. `}
-                                {invoice && `Invoice ${invoice.reference} created. `}
-                                {paymentIncomplete &&
-                                    `Last payment status: ${payment?.paymentStatus}. Please contact the hotel to complete checkout.`}
-                            </p>
-                        )}
-                        {channel === "ONLINE" && session?.role !== "USER" && (
-                            <p role="alert" className="text-sm text-destructive">
-                                Please <Link className="underline" href="/login">sign in</Link> with a
-                                guest account before making a booking.
-                            </p>
-                        )}
-                        {checkoutError && (
-                            <p role="alert" className="text-sm text-destructive">
-                                Checkout error: {checkoutError}
-                            </p>
-                        )}
-
-                        {payment && lastPaymentDetails ? (
-                            // Payment already recorded - only the invoice check is left.
-                            <Button
-                                type="button"
-                                className="w-full"
-                                onClick={() => completePayment(lastPaymentDetails)}
-                                disabled={processingPayment || paymentIncomplete}
-                            >
-                                {paymentIncomplete ? "Payment needs assistance" : "Verify invoice payment"}
-                            </Button>
-                        ) : (
-                            <PaymentMethodStep
-                                total={total}
-                                email={values.email}
-                                stayLabel={stayLabel}
-                                disabled={!room || nights <= 0 || processingPayment}
-                                onPay={completePayment}
-                            />
-                        )}
-
-                        {!booking && !invoice && !payment && (
-                            <Button
-                                type="button"
-                                variant="outline"
-                                className="w-full"
-                                disabled={processingPayment}
-                                onClick={() => {
-                                    setCheckout(null);
-                                    setCheckoutError(null);
-                                }}
-                            >
-                                Back to booking
-                            </Button>
-                        )}
+                <div className="space-y-4 rounded-lg border border-border bg-muted p-4 sm:p-5">
+                    <div>
+                        <h3 className="text-lg">Guest</h3>
+                        <p>
+                            {values.firstName} {values.lastName}
+                        </p>
+                        <p className="break-all text-muted-foreground">{values.email}</p>
                     </div>
 
-                    <div className="space-y-4 border bg-card p-4 sm:p-5">
-                        <div>
-                            <h3 className="font-semibold">Guest</h3>
-                            <p className="text-sm text-muted-foreground">
-                                {values.firstName} {values.lastName}
-                            </p>
-                            <p className="break-all text-sm text-muted-foreground">{values.email}</p>
+                    <div className="border-t border-input pt-4">
+                        <h3 className="text-lg">Your stay</h3>
+                        <p>
+                            {backendRoomLabel(room)} · {nights} {nights === 1 ? "night" : "nights"}
+                        </p>
+                        <p className="text-muted-foreground">
+                            {formatStayDate(values.checkInDate)} –{" "}
+                            {formatStayDate(values.checkOutDate)}
+                        </p>
+                        <div className="mt-4 flex justify-between gap-4 border-t border-input pt-4">
+                            <span>
+                                Room rate ({zar.format(room.pricePerNight)} × {nights}{" "}
+                                {nights === 1 ? "night" : "nights"})
+                            </span>
+                            <span>{zar.format(total)}</span>
                         </div>
-
-                        <div className="border-t pt-4">
-                            <h3 className="font-semibold">Your stay</h3>
-                            <p className="text-sm text-muted-foreground">
-                                {backendRoomLabel(room)} · {nights} {nights === 1 ? "night" : "nights"}
-                            </p>
-                            <p className="text-sm text-muted-foreground">
-                                {formatStayDate(values.checkInDate)} –{" "}
-                                {formatStayDate(values.checkOutDate)}
-                            </p>
-                            <div className="mt-4 flex justify-between gap-4 border-t pt-4 text-sm">
-                                <span>
-                                    Room rate ({zar.format(room.pricePerNight)} × {nights}{" "}
-                                    {nights === 1 ? "night" : "nights"})
-                                </span>
-                                <span className="shrink-0">{zar.format(total)}</span>
-                            </div>
-                            <div className="mt-2 flex justify-between gap-4 text-lg font-semibold">
-                                <span>Total due</span>
-                                <span className="shrink-0">{zar.format(total)}</span>
-                            </div>
-                            <p className="mt-2 text-xs text-muted-foreground">
-                                Free cancellation up to 48 hours before check-in.
-                            </p>
+                        <div className="mt-2 flex justify-between gap-4 text-xl font-bold">
+                            <span>Total due</span>
+                            <span>{zar.format(total)}</span>
                         </div>
+                        <p className="mt-2 text-muted-foreground">
+                            Free cancellation up to 48 hours before check-in.
+                        </p>
                     </div>
                 </div>
+
+                {(booking || invoice || payment) && (
+                    <p className="text-muted-foreground">
+                        {booking && `Booking #${booking.bookingId} created. `}
+                        {invoice && `Invoice ${invoice.reference} created. `}
+                        {paymentIncomplete &&
+                            `Last payment status: ${payment?.paymentStatus}. Please contact the hotel to complete checkout.`}
+                    </p>
+                )}
+                {channel === "ONLINE" && session?.role !== "USER" && (
+                    <Alert variant="warning" title="Sign in to book">
+                        Please{" "}
+                        <Link className="font-bold text-primary underline underline-offset-4 hover:no-underline" href="/login">
+                            sign in
+                        </Link>{" "}
+                        with a guest account before making a booking.
+                    </Alert>
+                )}
+                {checkoutError && (
+                    <Alert variant="danger" title="Checkout problem">
+                        {checkoutError}
+                    </Alert>
+                )}
+
+                {payment && lastPaymentDetails ? (
+                    // Payment already recorded - only the invoice check is left.
+                    <Button
+                        type="button"
+                        size="lg"
+                        className="w-full"
+                        onClick={() => completePayment(lastPaymentDetails)}
+                        disabled={processingPayment || paymentIncomplete}
+                    >
+                        {paymentIncomplete ? "Payment needs assistance" : "Verify invoice payment"}
+                    </Button>
+                ) : (
+                    <PaymentMethodStep
+                        total={total}
+                        email={values.email}
+                        stayLabel={stayLabel}
+                        disabled={!room || nights <= 0 || processingPayment}
+                        onPay={completePayment}
+                    />
+                )}
+
+                {!booking && !invoice && !payment && (
+                    <Button
+                        type="button"
+                        variant="secondary"
+                        className="w-full"
+                        disabled={processingPayment}
+                        onClick={() => {
+                            setCheckout(null);
+                            setCheckoutError(null);
+                        }}
+                    >
+                        Back to booking
+                    </Button>
+                )}
             </section>
         );
     }
 
     return (
         <Form {...form}>
-            {progress}
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                <div className="space-y-4">
-                    {!compact && <h3 className="font-semibold text-lg">Guest details</h3>}
+            <form onSubmit={form.handleSubmit(onSubmit)} noValidate className="space-y-6">
+                <fieldset className="space-y-4">
+                    <legend className={compact ? "sr-only" : "mb-4 text-xl font-bold"}>
+                        Guest details
+                    </legend>
                     {channel === "ONLINE" && session?.role !== "USER" && (
-                        <p role="alert" className="text-sm text-destructive">
-                            Please <Link className="underline" href="/login">sign in</Link> with
-                            a guest account before making a booking.
-                        </p>
+                        <Alert variant="warning" title="Sign in to book">
+                            Please{" "}
+                            <Link className="font-bold text-primary underline underline-offset-4 hover:no-underline" href="/login">
+                                sign in
+                            </Link>{" "}
+                            with a guest account before making a booking.
+                        </Alert>
                     )}
                     {checkoutError && (
-                        <p role="alert" className="text-sm text-destructive">
-                            {checkoutError}
-                        </p>
+                        <Alert variant="danger">{checkoutError}</Alert>
                     )}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                         <FormField
                             control={form.control}
                             name="firstName"
@@ -850,7 +883,7 @@ export function BookingForm({ channel, onSuccess, compact, fixedRoom, initialSta
                                             type="email"
                                             {...field}
                                             value={session?.role === "USER" ? session.email : field.value}
-                                            disabled={channel === "ONLINE" && session?.role === "USER"}
+                                            disabled={channel === "ONLINE" && isGuestSelfBooking}
                                         />
                                     </FormControl>
                                     <FormMessage />
@@ -871,23 +904,23 @@ export function BookingForm({ channel, onSuccess, compact, fixedRoom, initialSta
                             )}
                         />
                     </div>
-                </div>
+                </fieldset>
 
-                <div className="space-y-4">
-                    {!compact && <h3 className="font-semibold text-lg">Stay details</h3>}
+                <fieldset className="space-y-4">
+                    <legend className={compact ? "sr-only" : "mb-4 text-xl font-bold"}>
+                        Stay details
+                    </legend>
                     {fixedRoom ? (
                         <div>
-                            <Label>Room</Label>
+                            <p className="font-bold">Room</p>
                             {roomsLoading ? (
-                                <p className="mt-2 text-sm text-muted-foreground">
-                                    Checking room in the hotel system...
-                                </p>
+                                <LoadingState label="Checking room in the hotel system…" className="mt-2 py-4" />
                             ) : roomsError ? (
-                                <p role="alert" className="mt-2 text-sm text-destructive">
+                                <Alert variant="danger" className="mt-2">
                                     Unable to load rooms: {roomsError}
-                                </p>
+                                </Alert>
                             ) : (
-                                <p className="mt-2 text-sm">
+                                <p className="mt-1">
                                     {selectedFixedApiRoom
                                         ? `${backendRoomLabel(
                                               selectedFixedApiRoom
@@ -912,49 +945,38 @@ export function BookingForm({ channel, onSuccess, compact, fixedRoom, initialSta
                                             </SelectTrigger>
                                         </FormControl>
                                         <SelectContent>
-                                            {channel === "ONLINE"
-                                                ? availableApiRooms.map((room) => (
-                                                      <SelectItem
-                                                          key={room.roomId}
-                                                          value={String(room.roomId)}
-                                                      >
-                                                          {backendRoomLabel(room)} (
-                                                          {zar.format(room.pricePerNight)}/night)
-                                                      </SelectItem>
-                                                  ))
-                                                : availableRooms.map((room) => (
-                                                      <SelectItem
-                                                          key={room.roomId}
-                                                          value={room.roomId}
-                                                      >
-                                                          Room {room.roomNumber} —{" "}
-                                                          {ROOM_TYPE_LABELS[room.type]} (
-                                                          {zar.format(room.pricePerNight)}/night)
-                                                      </SelectItem>
-                                                  ))}
+                                            {availableApiRooms.map((room) => (
+                                                <SelectItem
+                                                    key={room.roomId}
+                                                    value={String(room.roomId)}
+                                                >
+                                                    {backendRoomLabel(room)} (
+                                                    {zar.format(room.pricePerNight)}/night)
+                                                    {channel !== "ONLINE" &&
+                                                        room.roomStatus === "OCCUPIED" &&
+                                                        " · occupied today"}
+                                                </SelectItem>
+                                            ))}
                                         </SelectContent>
                                     </Select>
-                                    {channel === "ONLINE" && roomsLoading && (
-                                        <p className="text-sm text-muted-foreground">
-                                            Loading rooms from the hotel system...
-                                        </p>
+                                    {roomsLoading && (
+                                        <LoadingState label="Loading rooms from the hotel system…" className="py-4" />
                                     )}
-                                    {channel === "ONLINE" && roomsError && (
-                                        <p role="alert" className="text-sm text-destructive">
+                                    {roomsError && (
+                                        <Alert variant="danger">
                                             Unable to load rooms: {roomsError}
-                                        </p>
+                                        </Alert>
                                     )}
-                                    {channel === "ONLINE" &&
-                                        !roomsLoading &&
+                                    {!roomsLoading &&
                                         !roomsError &&
                                         availableApiRooms.length === 0 && (
-                                            <p className="text-sm text-muted-foreground">
+                                            <Alert variant="warning">
                                                 No rooms are currently marked available. Please
                                                 contact the hotel.
-                                            </p>
+                                            </Alert>
                                         )}
                                     {initialStay?.guests && initialStay.guests > 1 && (
-                                        <p className="text-sm text-muted-foreground">
+                                        <p className="text-muted-foreground">
                                             Showing rooms for {initialStay.guests} guests.
                                         </p>
                                     )}
@@ -964,7 +986,7 @@ export function BookingForm({ channel, onSuccess, compact, fixedRoom, initialSta
                         />
                     )}
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                         <FormField
                             control={form.control}
                             name="checkInDate"
@@ -972,7 +994,19 @@ export function BookingForm({ channel, onSuccess, compact, fixedRoom, initialSta
                                 <FormItem>
                                     <FormLabel>Check-in date</FormLabel>
                                     <FormControl>
-                                        <Input type="date" {...field} />
+                                        <Input
+                                            type="date"
+                                            min={today}
+                                            {...field}
+                                            onChange={(event) => {
+                                                field.onChange(event);
+                                                // Clear a check-out that is no longer after check-in.
+                                                const checkOut = form.getValues("checkOutDate");
+                                                if (checkOut && checkOut <= event.target.value) {
+                                                    form.setValue("checkOutDate", "");
+                                                }
+                                            }}
+                                        />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
@@ -985,27 +1019,33 @@ export function BookingForm({ channel, onSuccess, compact, fixedRoom, initialSta
                                 <FormItem>
                                     <FormLabel>Check-out date</FormLabel>
                                     <FormControl>
-                                        <Input type="date" {...field} />
+                                        <Input type="date" min={minCheckOut} {...field} />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
                             )}
                         />
                     </div>
-                </div>
+                </fieldset>
 
                 <Button
                     type="submit"
+                    size="lg"
                     className="w-full"
                     disabled={
-                        channel === "ONLINE" &&
-                        (session?.role !== "USER" ||
-                            roomsLoading ||
-                            Boolean(roomsError) ||
-                            Boolean(fixedRoom && fixedRoomUnavailable))
+                        roomsLoading ||
+                        Boolean(roomsError) ||
+                        savingStaffBooking ||
+                        (channel === "ONLINE" &&
+                            (session?.role !== "USER" ||
+                                Boolean(fixedRoom && fixedRoomUnavailable)))
                     }
                 >
-                    {channel === "ONLINE" ? "Continue to payment" : "Confirm booking"}
+                    {channel === "ONLINE"
+                        ? "Review booking"
+                        : savingStaffBooking
+                          ? "Saving booking…"
+                          : "Confirm booking"}
                 </Button>
             </form>
         </Form>
@@ -1048,4 +1088,9 @@ function getCheckoutErrorMessage(error: unknown) {
     return error instanceof Error
         ? error.message
         : "Unable to complete checkout. Please try again.";
+}
+/** yyyy-MM-dd of the day after `isoDate` (local calendar, no timezone drift). */
+function nextDay(isoDate: string) {
+    const [y, m, d] = isoDate.split("-").map(Number);
+    return localIsoDate(new Date(y, m - 1, d + 1));
 }

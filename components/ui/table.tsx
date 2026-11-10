@@ -2,14 +2,32 @@ import * as React from "react"
 
 import { cn } from "@/lib/utils"
 
+/*
+  Data table.
+  - Wide screens: a normal table with a sand header row and roomy cells.
+  - Below 640px (phones, or 200% zoom): each row becomes a card and each
+    cell shows its column name. Give every <TableCell> a `data-label`
+    matching its column header; cells without one (e.g. "No results")
+    span the full card width. Styles live in `.table-stack` in globals.css.
+  - Explicit ARIA roles keep table semantics when CSS changes `display`.
+  - Right-align numbers with `className="text-right tabular-nums"`.
+*/
+
 const Table = React.forwardRef<
   HTMLTableElement,
-  React.HTMLAttributes<HTMLTableElement>
->(({ className, ...props }, ref) => (
-  <div className="relative w-full overflow-auto">
+  React.HTMLAttributes<HTMLTableElement> & { label?: string }
+>(({ className, label, ...props }, ref) => (
+  // Focusable so keyboard users can scroll it if a wide table overflows.
+  <div
+    tabIndex={0}
+    role="region"
+    aria-label={label}
+    className="table-stack-wrap relative w-full overflow-x-auto rounded-lg border border-border bg-card shadow-sm"
+  >
     <table
       ref={ref}
-      className={cn("w-full caption-bottom text-sm", className)}
+      role="table"
+      className={cn("table-stack w-full caption-bottom text-base", className)}
       {...props}
     />
   </div>
@@ -22,10 +40,8 @@ const TableHeader = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <thead
     ref={ref}
-    className={cn(
-      "bg-muted/60 [&_tr]:border-b-2 [&_tr]:border-foreground/15 [&_tr]:hover:bg-transparent",
-      className
-    )}
+    role="rowgroup"
+    className={cn("bg-muted [&_tr]:border-b-2 [&_tr]:border-input [&_tr]:hover:bg-transparent", className)}
     {...props}
   />
 ))
@@ -37,6 +53,7 @@ const TableBody = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <tbody
     ref={ref}
+    role="rowgroup"
     className={cn("[&_tr:last-child]:border-0", className)}
     {...props}
   />
@@ -49,10 +66,8 @@ const TableFooter = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <tfoot
     ref={ref}
-    className={cn(
-      "border-t bg-muted/50 font-medium [&>tr]:last:border-b-0",
-      className
-    )}
+    role="rowgroup"
+    className={cn("border-t-2 border-input bg-muted font-bold [&>tr]:last:border-b-0", className)}
     {...props}
   />
 ))
@@ -64,8 +79,9 @@ const TableRow = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <tr
     ref={ref}
+    role="row"
     className={cn(
-      "border-b border-foreground/10 transition-colors hover:bg-muted data-[state=selected]:bg-muted",
+      "border-b border-border transition-colors hover:bg-muted/50 data-[state=selected]:bg-accent",
       className
     )}
     {...props}
@@ -76,11 +92,13 @@ TableRow.displayName = "TableRow"
 const TableHead = React.forwardRef<
   HTMLTableCellElement,
   React.ThHTMLAttributes<HTMLTableCellElement>
->(({ className, ...props }, ref) => (
+>(({ className, scope = "col", ...props }, ref) => (
   <th
     ref={ref}
+    role="columnheader"
+    scope={scope}
     className={cn(
-      "h-11 px-4 text-left align-middle text-xs font-semibold uppercase tracking-wide text-foreground/80 [&:has([role=checkbox])]:pr-0",
+      "whitespace-nowrap px-4 py-3 text-left align-bottom text-base font-bold text-foreground",
       className
     )}
     {...props}
@@ -94,10 +112,8 @@ const TableCell = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <td
     ref={ref}
-    className={cn(
-      "px-4 py-3.5 align-middle [&:has([role=checkbox])]:pr-0",
-      className
-    )}
+    role="cell"
+    className={cn("px-4 py-4 align-middle", className)}
     {...props}
   />
 ))
@@ -109,7 +125,7 @@ const TableCaption = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <caption
     ref={ref}
-    className={cn("mt-4 text-sm text-muted-foreground", className)}
+    className={cn("px-4 py-3 text-left text-base text-muted-foreground", className)}
     {...props}
   />
 ))

@@ -78,18 +78,18 @@ export default function AppSidebar() {
   }
 
   return (
-    <Sidebar collapsible='icon' variant='floating'>
-      <SidebarHeader className='px-4 py-3 font-bold group-data-[collapsible=icon]:px-2 group-data-[collapsible=icon]:py-4'>
-        <Link href="/" aria-label="Margin Hotel home" className="shrink-0 group-data-[collapsible=icon]:mx-auto">
-          <Logo className="text-[0.8rem] sm:text-sm group-data-[collapsible=icon]:hidden" markClassName="size-7" />
-          <LogoMark className="hidden size-7 group-data-[collapsible=icon]:block" />
+    <Sidebar collapsible='icon' variant='floating' role='navigation' aria-label='Admin'>
+      <SidebarHeader className='border-b border-sidebar-border px-4 py-4 group-data-[collapsible=icon]:px-2'>
+        <Link href="/" aria-label="Margin Hotel home" className="inline-flex min-h-tap shrink-0 items-center rounded-md group-data-[collapsible=icon]:mx-auto">
+          <Logo className="text-sm group-data-[collapsible=icon]:hidden" markClassName="size-8" />
+          <LogoMark className="hidden size-8 group-data-[collapsible=icon]:block" />
         </Link>
       </SidebarHeader>
-      <SidebarContent className='overflow-x-hidden'>
+      <SidebarContent className='gap-2 overflow-x-hidden py-3'>
         {navGroups.map((group) => (
-          <SidebarGroup key={group.label || 'ungrouped'} className='py-0'>
+          <SidebarGroup key={group.label || 'ungrouped'} className='py-1'>
             {group.label && <SidebarGroupLabel>{group.label}</SidebarGroupLabel>}
-            <SidebarMenu>
+            <SidebarMenu className='gap-1'>
               {group.items.map((item) => {
                 const Icon = item.icon ? Icons[item.icon] : Icons.logo;
                 return item?.items && item?.items?.length > 0 ? (
@@ -111,7 +111,7 @@ export default function AppSidebar() {
                           {item.items?.map((subItem) => (
                             <SidebarMenuSubItem key={subItem.title}>
                               <SidebarMenuSubButton asChild isActive={pathname === subItem.url}>
-                                <Link href={subItem.url} aria-label={subItem.title}>
+                                <Link href={subItem.url} aria-current={pathname === subItem.url ? 'page' : undefined}>
                                   <span>{subItem.title}</span>
                                 </Link>
                               </SidebarMenuSubButton>
@@ -124,7 +124,7 @@ export default function AppSidebar() {
                 ) : (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton asChild tooltip={item.title} isActive={pathname === item.url}>
-                      <Link href={item.url} aria-label={item.title}>
+                      <Link href={item.url} aria-current={pathname === item.url ? 'page' : undefined}>
                         <Icon />
                         <span>{item.title}</span>
                       </Link>
@@ -136,21 +136,26 @@ export default function AppSidebar() {
           </SidebarGroup>
         ))}
       </SidebarContent>
-      <SidebarFooter className='group-data-[collapsible=icon]:px-2 group-data-[collapsible=icon]:py-4'>
-        <div className='rounded-lg border border-navy/20 bg-white/75 p-2 shadow-sm dark:border-white/25 dark:bg-white/[0.08] group-data-[collapsible=icon]:border-0 group-data-[collapsible=icon]:bg-transparent group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:shadow-none'>
-          <ToggleTheme className='justify-end group-data-[collapsible=icon]:justify-center' />
-          <SidebarMenu>
-            {session && (
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  tooltip={`${displayName || session.email} · ${session.role}`}
-                  className='h-auto min-h-12 cursor-default py-2'
-                  aria-label={`Logged in as ${displayName || session.email}, ${session.role}`}
-                >
-                  <UserRound />
-                  <span className='flex min-w-0 flex-col items-start gap-0.5'>
-                    <span className='max-w-full truncate font-medium'>
-                      {displayName || session.email}
+      <SidebarFooter className='border-t border-sidebar-border group-data-[collapsible=icon]:px-2 group-data-[collapsible=icon]:py-4'>
+        <SidebarMenu>
+          {session && (
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                tooltip={`${displayName || session.email} · ${session.role}`}
+                className='h-auto min-h-12 cursor-default py-2 hover:bg-transparent active:bg-transparent'
+                aria-label={`Logged in as ${displayName || session.email}, ${session.role}`}
+              >
+                <UserRound />
+                <span className='flex min-w-0 flex-col items-start gap-0.5'>
+                  <span className='max-w-full truncate font-bold'>
+                    {displayName || session.email}
+                  </span>
+                  <span className='text-sm text-sidebar-foreground/80'>
+                    {session.role === 'ADMIN' ? 'Administrator' : 'Receptionist'}
+                  </span>
+                  {nameLoadError && (
+                    <span className='text-sm text-sidebar-foreground/80'>
+                      Name unavailable
                     </span>
                     <span className='text-xs text-muted-foreground'>
                       {session.role === 'ADMIN' ? 'Administrator' : 'Receptionist'}
@@ -162,39 +167,30 @@ export default function AppSidebar() {
                     )}
                   </span>
                 </SidebarMenuButton>
-              </SidebarMenuItem>
-            )}
-            <Dialog open={logoutDialogOpen} onOpenChange={setLogoutDialogOpen}>
-              <SidebarMenuItem>
-                <DialogTrigger asChild>
-                  <SidebarMenuButton tooltip='Log out'>
-                    <LogOut className='text-destructive' />
-                    <span>Log out</span>
-                  </SidebarMenuButton>
-                </DialogTrigger>
-              </SidebarMenuItem>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Log out?</DialogTitle>
-                  <DialogDescription>
-                    Are you sure you want to log out of Margin Hotel Admin?
-                  </DialogDescription>
-                </DialogHeader>
-                <DialogFooter>
-                  <Button
-                    variant='outline'
-                    onClick={() => setLogoutDialogOpen(false)}
-                  >
-                    Cancel
-                  </Button>
-                  <Button variant='destructive' onClick={handleLogout}>
-                    Log out
-                  </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
-          </SidebarMenu>
-        </div>
+              </DialogTrigger>
+            </SidebarMenuItem>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Log out?</DialogTitle>
+                <DialogDescription>
+                  Are you sure you want to log out of Margin Hotel Admin?
+                </DialogDescription>
+              </DialogHeader>
+              <DialogFooter>
+                <Button
+                  variant='secondary'
+                  onClick={() => setLogoutDialogOpen(false)}
+                >
+                  Cancel
+                </Button>
+                <Button variant='destructive' onClick={handleLogout}>
+                  Log out
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </SidebarMenu>
+        <ToggleTheme className='text-sidebar-foreground hover:bg-sidebar-accent group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0' />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>

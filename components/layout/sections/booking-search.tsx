@@ -2,7 +2,9 @@
 import { useEffect, useId, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { addDays, format } from "date-fns";
+import { CircleAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -18,10 +20,6 @@ const toIsoDate = (date: Date) => format(date, "yyyy-MM-dd");
 // Largest room (the suites) sleeps four - see data/rooms.ts.
 const guestOptions = ["1", "2", "3", "4"];
 
-// Underlined fields on navy: quiet, minimal inputs in keeping with the brand.
-const fieldClass =
-  "h-12 w-full rounded-none border-0 border-b border-gold/40 bg-transparent px-0 text-base text-ivory [color-scheme:dark] focus-visible:border-b-2 focus-visible:border-gold focus-visible:outline-none focus-visible:ring-0";
-const labelClass = "eyebrow text-[0.65rem] text-gold";
 
 interface BookingSearchProps {
   className?: string;
@@ -72,18 +70,19 @@ export const BookingSearch = ({ className, layout = "stacked" }: BookingSearchPr
   return (
     <form
       onSubmit={handleSubmit}
-      aria-label="Check availability"
+      // Unique names: the home page shows this form twice (hero + reservations).
+      aria-label={isBar ? "Quick availability search" : "Check availability"}
       className={cn(
-        "grid gap-8 sm:grid-cols-3",
-        isBar && "gap-6 lg:grid-cols-[1fr_1fr_0.8fr_auto] lg:items-end",
+        "grid gap-5 sm:grid-cols-3",
+        isBar && "lg:grid-cols-[1fr_1fr_0.8fr_auto] lg:items-end",
         className
       )}
     >
       <div className="space-y-2">
-        <Label htmlFor={ids.checkIn} className={labelClass}>
+        <Label htmlFor={ids.checkIn}>
           Check-in
         </Label>
-        <input
+        <Input
           id={ids.checkIn}
           type="date"
           min={today}
@@ -92,15 +91,15 @@ export const BookingSearch = ({ className, layout = "stacked" }: BookingSearchPr
             setCheckIn(e.target.value);
             if (checkOut && e.target.value >= checkOut) setCheckOut("");
           }}
-          className={fieldClass}
+          className="dark:[color-scheme:dark]"
         />
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor={ids.checkOut} className={labelClass}>
+        <Label htmlFor={ids.checkOut}>
           Check-out
         </Label>
-        <input
+        <Input
           id={ids.checkOut}
           type="date"
           min={minCheckOut}
@@ -108,19 +107,16 @@ export const BookingSearch = ({ className, layout = "stacked" }: BookingSearchPr
           onChange={(e) => setCheckOut(e.target.value)}
           aria-invalid={!!error}
           aria-describedby={error ? ids.error : undefined}
-          className={fieldClass}
+          className="dark:[color-scheme:dark]"
         />
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor={ids.guests} className={labelClass}>
+        <Label htmlFor={ids.guests}>
           Guests
         </Label>
         <Select value={guests} onValueChange={setGuests}>
-          <SelectTrigger
-            id={ids.guests}
-            className={cn(fieldClass, "focus:border-b-2 focus:border-gold focus:ring-0 focus:ring-offset-0 [&>svg]:text-gold")}
-          >
+          <SelectTrigger id={ids.guests}>
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -137,16 +133,22 @@ export const BookingSearch = ({ className, layout = "stacked" }: BookingSearchPr
         <p
           id={ids.error}
           role="alert"
-          className={cn("text-sm text-gold-light sm:col-span-3", isBar && "lg:order-last lg:col-span-4")}
+          className={cn(
+            "flex items-start gap-1.5 font-bold text-danger sm:col-span-3",
+            isBar && "lg:order-last lg:col-span-4"
+          )}
         >
-          {error}
+          <CircleAlert aria-hidden className="mt-0.5 size-5 shrink-0" />
+          <span>
+            <span className="sr-only">Error: </span>
+            {error}
+          </span>
         </p>
       )}
 
       <Button
         type="submit"
-        variant="gold"
-        size="brand"
+        size="lg"
         className={cn("sm:col-span-3 sm:justify-self-start", isBar && "lg:col-span-1")}
       >
         Check availability

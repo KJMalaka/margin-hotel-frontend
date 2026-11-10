@@ -54,16 +54,16 @@ const FAQList: FAQProps[] = [
 
 export const FAQSection = () => {
   return (
-    <Section id="faq" tone="white" rules="top">
-      <div className="container grid gap-12 lg:grid-cols-[1fr_1.4fr] lg:gap-24">
+    <Section id="faq" tone="white" divider>
+      <div className="container grid gap-8 lg:grid-cols-[1fr_1.4fr] lg:gap-16">
         <SectionHeading
-          eyebrow="Guest Help"
+          eyebrow="Guest help"
           title="Frequently asked questions"
           description={
             <>
               Everything you need to know before you arrive. For anything else,
               see our{" "}
-              <Link href="/policies" className="text-ocean underline underline-offset-4 hover:text-navy dark:text-gold">
+              <Link href="/policies" className="font-bold text-primary underline underline-offset-4 hover:no-underline">
                 guest policies
               </Link>{" "}
               or contact the front desk.
@@ -71,13 +71,15 @@ export const FAQSection = () => {
           }
         />
 
-        <Accordion type="single" collapsible className="border-t border-border">
+        <Accordion type="single" collapsible>
           {FAQList.map(({ question, answer, value }) => (
-            <AccordionItem key={value} value={value} className="my-0 rounded-none border-0 border-b border-border bg-transparent px-0 dark:bg-transparent">
-              <AccordionTrigger className="py-6 text-left font-heading text-sm font-medium tracking-wide text-navy hover:no-underline hover:text-ocean dark:text-ivory dark:hover:text-gold [&>svg]:text-gold-deep">
+            <AccordionItem key={value} value={value}>
+              {/* Explicit pairing: each question always names its answer panel
+                  (Radix only sets aria-controls while a panel is open). */}
+              <AccordionTrigger aria-controls={`faq-answer-${value}`}>
                 {question}
               </AccordionTrigger>
-              <AccordionContent className="pb-6 text-base text-muted-foreground">
+              <AccordionContent id={`faq-answer-${value}`}>
                 {answer}
               </AccordionContent>
             </AccordionItem>

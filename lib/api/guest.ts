@@ -28,3 +28,9 @@ export async function createGuest(data: CreateGuestRequest): Promise<Guest> {
   const response = await api.post<Guest>("/guest/create", data);
   return response.data;
 }
+
+/** Every guest - staff only (RECEPTIONIST / ADMIN). */
+export async function getGuests(): Promise<Guest[]> {
+  const response = await api.get<Guest[]>("/guest/getall");
+  return response.data;
+}

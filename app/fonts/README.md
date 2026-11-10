@@ -1,12 +1,14 @@
-# Brand fonts
+# Brand font
 
-Self-hosted copies (latin subset, woff2) downloaded from Google Fonts:
+Self-hosted copies (latin subset, woff2) downloaded from Google Fonts and
+loaded with `next/font/local` in `app/layout.tsx`, so builds need no network
+fetch and the metric-matched fallback prevents layout shift.
 
 | File | Family | Use |
 | --- | --- | --- |
-| `InstrumentSerif-*.woff2` | Instrument Serif | Display titles |
-| `Montserrat-normal.woff2` | Montserrat (variable, 400–600) | Headings, labels, wordmark |
-| `HankenGrotesk-normal.woff2` | Hanken Grotesk (variable, 300–700) | Body copy |
+| `AtkinsonHyperlegible-400.woff2` | Atkinson Hyperlegible Regular | All body and interface text |
+| `AtkinsonHyperlegible-700.woff2` | Atkinson Hyperlegible Bold | Headings, labels, emphasis |
 
-All three are licensed under the SIL Open Font License 1.1:
+Atkinson Hyperlegible was designed by the Braille Institute for readers with
+low vision. It is licensed under the SIL Open Font License 1.1:
 https://openfontlicense.org

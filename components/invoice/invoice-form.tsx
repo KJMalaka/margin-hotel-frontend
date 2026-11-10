@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 import { Button } from "@/components/ui/button";
+import { Alert } from "@/components/ui/alert";
 import { Input } from "@/components/ui/input";
 import {
   Form,
@@ -100,7 +101,7 @@ export function InvoiceForm({ invoice, onSuccess, compact }: InvoiceFormProps) {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
         <FormField
           control={form.control}
           name="reference"
@@ -111,7 +112,7 @@ export function InvoiceForm({ invoice, onSuccess, compact }: InvoiceFormProps) {
                 <Input {...field} disabled={isEditing} />
               </FormControl>
               {isEditing && (
-                <p className="text-xs text-muted-foreground">
+                <p className="text-muted-foreground">
                   Reference can&apos;t be changed after creation.
                 </p>
               )}
@@ -130,7 +131,7 @@ export function InvoiceForm({ invoice, onSuccess, compact }: InvoiceFormProps) {
                 <Input type="number" {...field} disabled={isEditing} />
               </FormControl>
               {isEditing && (
-                <p className="text-xs text-muted-foreground">
+                <p className="text-muted-foreground">
                   Booking link can&apos;t be changed after creation.
                 </p>
               )}
@@ -139,7 +140,7 @@ export function InvoiceForm({ invoice, onSuccess, compact }: InvoiceFormProps) {
           )}
         />
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <FormField
             control={form.control}
             name="totalAmount"
@@ -190,7 +191,7 @@ export function InvoiceForm({ invoice, onSuccess, compact }: InvoiceFormProps) {
                 <Input type="date" {...field} disabled={isEditing} />
               </FormControl>
               {isEditing && (
-                <p className="text-xs text-muted-foreground">
+                <p className="text-muted-foreground">
                   Issue date can&apos;t be changed after creation.
                 </p>
               )}
@@ -199,9 +200,9 @@ export function InvoiceForm({ invoice, onSuccess, compact }: InvoiceFormProps) {
           )}
         />
 
-        {error && <p className="text-sm text-destructive">{error}</p>}
+        {error && <Alert variant="danger">{error}</Alert>}
 
-        <Button type="submit" className={compact ? "w-full" : ""} disabled={submitting}>
+        <Button type="submit" className={compact ? "w-full" : "w-full sm:w-auto"} disabled={submitting}>
           {submitting ? "Saving..." : isEditing ? "Save changes" : "Create invoice"}
         </Button>
       </form>

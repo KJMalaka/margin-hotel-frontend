@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Section, SectionHeading } from "@/components/brand/section";
 import { RoomCard } from "@/components/rooms/room-card";
@@ -20,24 +21,29 @@ const featuredRooms = Object.values(
 
 export const RoomsPreviewSection = () => {
   return (
-    <Section id="rooms" tone="white" rules="top">
+    <Section id="rooms" tone="white" divider>
       <div className="container">
-        <div className="mb-14 flex flex-col gap-8 md:flex-row md:items-end md:justify-between">
+        <div className="mb-10 flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
           <SectionHeading
-            eyebrow="Rooms & Suites"
+            eyebrow="Rooms & suites"
             title="Rest, beautifully"
             description="From cosy rooms for solo travellers to generous family suites - each one light-filled, calm and made for slow mornings. Prices are per room, per night."
           />
-          <Button asChild variant="navyOutline" size="brand" className="shrink-0 self-start md:self-auto">
-            <Link href="/rooms">View all rooms</Link>
+          <Button asChild variant="view" className="shrink-0 self-start md:self-auto">
+            <Link href="/rooms">
+              View all rooms
+              <ArrowRight aria-hidden />
+            </Link>
           </Button>
         </div>
 
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 lg:gap-8">
+        <ul className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {featuredRooms.map((room) => (
-            <RoomCard key={room.roomId} room={room} />
+            <li key={room.roomId}>
+              <RoomCard room={room} />
+            </li>
           ))}
-        </div>
+        </ul>
       </div>
     </Section>
   );

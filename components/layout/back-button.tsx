@@ -15,10 +15,10 @@ export const BackButton = ({ label = "Back" }: BackButtonProps) => {
   return (
     <Button
       variant="ghost"
-      className="pl-0 hover:pl-0 hover:bg-transparent gap-2 font-semibold"
+      className="-ml-3"
       onClick={() => router.back()}
     >
-      <ArrowLeft className="size-4" />
+      <ArrowLeft aria-hidden />
       {label}
     </Button>
   );

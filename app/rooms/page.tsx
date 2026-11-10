@@ -15,20 +15,23 @@ export default function RoomsPage() {
     <>
       <Navbar />
 
-      <main className="container py-20 sm:py-28">
+      <main id="main" className="container section-y">
         <SectionHeading
           as="h1"
-          eyebrow="Rooms & Suites"
+          eyebrow="Rooms & suites"
           title="Find your perfect stay"
           description="From cosy rooms for solo travellers to generous family suites - each one light-filled, calm and made for slow mornings. Prices are per room, per night."
-          className="mb-14"
+          className="mb-10"
         />
 
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 lg:gap-8">
+        <h2 className="sr-only">All rooms</h2>
+        <ul className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {roomList.map((room) => (
-            <RoomCard key={room.roomId} room={room} />
+            <li key={room.roomId}>
+              <RoomCard room={room} />
+            </li>
           ))}
-        </div>
+        </ul>
       </main>
 
       <FooterSection />

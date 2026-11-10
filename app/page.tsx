@@ -43,7 +43,7 @@ export default function Home() {
   return (
     <>
       <Navbar />
-      <main>
+      <main id="main">
         <HeroSection />
         <AboutSection />
         <RoomsPreviewSection />

@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import Image from "next/image";
-import { Users } from "lucide-react";
+import { CalendarX, Users } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { Navbar } from "@/components/layout/navbar";
 import { FooterSection } from "@/components/layout/sections/footer";
 import { BackButton } from "@/components/layout/back-button";
@@ -46,11 +47,11 @@ export default function RoomPage({ params }: RoomPageProps) {
     <>
       <Navbar />
 
-      <main className="container py-20 sm:py-28">
+      <main id="main" className="container py-8 sm:py-12">
         <BackButton />
 
-        <div className="mt-6 grid gap-10 lg:grid-cols-2 lg:gap-16">
-          <div className="relative aspect-[4/3] overflow-hidden border border-border">
+        <div className="mt-4 grid gap-8 lg:grid-cols-2 lg:gap-12">
+          <div className="relative aspect-[4/3] overflow-hidden rounded-lg bg-muted shadow-md">
             <Image
               src={room.imageUrl}
               alt={`${label} at Margin Hotel`}
@@ -60,9 +61,10 @@ export default function RoomPage({ params }: RoomPageProps) {
               priority
             />
             {!available && (
-              <span className="absolute top-4 right-4 bg-navy-midnight/80 px-3 py-1.5 font-heading text-[0.6rem] font-medium uppercase tracking-brand text-ivory backdrop-blur">
+              <Badge variant="warning" className="absolute right-3 top-3 shadow-sm">
+                <CalendarX aria-hidden />
                 Currently booked
-              </span>
+              </Badge>
             )}
           </div>
 
@@ -74,20 +76,26 @@ export default function RoomPage({ params }: RoomPageProps) {
               description={room.description}
             />
 
-            <div className="mt-6 flex items-center justify-between gap-4 border-t border-border pt-5">
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Users className="size-4" strokeWidth={1.5} />
-                {room.capacity} {room.capacity === 1 ? "guest" : "guests"}
+            <dl className="mt-6 flex flex-wrap items-end justify-between gap-4 border-y border-border py-4">
+              <div className="text-muted-foreground">
+                <dt className="sr-only">Sleeps</dt>
+                <dd className="flex items-center gap-2 text-lg">
+                  <Users aria-hidden className="size-5" />
+                  {room.capacity} {room.capacity === 1 ? "guest" : "guests"}
+                </dd>
               </div>
-              <p className="text-right text-navy dark:text-ivory">
-                <span className="font-heading text-xl font-medium">
-                  {zar.format(room.pricePerNight)}
-                </span>
-                <span className="text-xs text-muted-foreground"> / night</span>
-              </p>
-            </div>
+              <div className="text-right">
+                <dt className="sr-only">Price</dt>
+                <dd>
+                  <span className="text-2xl font-bold">
+                    {zar.format(room.pricePerNight)}
+                  </span>
+                  <span className="text-muted-foreground"> per night</span>
+                </dd>
+              </div>
+            </dl>
 
-            <div className="mt-8">
+            <div className="mt-6">
               <RoomBookingDialog room={room} />
             </div>
           </div>

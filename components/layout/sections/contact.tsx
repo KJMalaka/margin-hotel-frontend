@@ -31,6 +31,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { Alert } from "@/components/ui/alert";
 import { Section, SectionHeading } from "@/components/brand/section";
 import { createEnquiry } from "@/lib/api/enquiry";
 import { fullAddress, siteConfig, telHref } from "@/config/site";
@@ -107,9 +108,9 @@ const contactDetails: ContactDetail[] = [
   },
   {
     icon: Clock,
-    title: "Front Desk Hours",
+    title: "Front desk hours",
     lines: [
-      { text: "24/7 Front Desk Assistance" },
+      { text: "24/7 front desk assistance" },
       { text: `Check-in from ${siteConfig.hours.checkIn}` },
       { text: `Check-out by ${siteConfig.hours.checkOut}` },
     ],
@@ -143,10 +144,6 @@ type SubmitState =
   | { status: "sent" }
   | { status: "error"; mailto: string };
 
-// Minimal underlined fields, echoing the booking panel.
-const fieldClass =
-  "rounded-none border-0 border-b border-input bg-transparent px-0 text-base shadow-none placeholder:text-muted-foreground/55 focus-visible:border-b-2 focus-visible:border-ocean focus-visible:ring-0 focus-visible:ring-offset-0 dark:focus-visible:border-gold";
-const labelClass = "eyebrow text-[0.65rem] text-navy dark:text-gold";
 
 export const ContactSection = () => {
   const [submitState, setSubmitState] = useState<SubmitState>({
@@ -171,47 +168,46 @@ export const ContactSection = () => {
   }
 
   return (
-    <Section id="contact" tone="light" rules="top">
-      <div className="container grid gap-16 lg:grid-cols-2 lg:gap-24">
+    <Section id="contact" tone="light" divider>
+      <div className="container grid gap-10 lg:grid-cols-2 lg:gap-16">
         <div>
           <SectionHeading
-            eyebrow="Contact Us"
+            eyebrow="Contact us"
             title="Get in touch"
             description="Have questions about your stay, special reservations, or event bookings? Reach out to our team."
           />
 
-          <dl className="mt-12 grid gap-x-10 gap-y-8 sm:grid-cols-2">
+          <ul className="mt-8 grid gap-x-8 gap-y-6 sm:grid-cols-2">
             {contactDetails.map(({ icon: DetailIcon, title, lines }) => (
-              <div key={title} className="flex gap-4">
+              <li key={title} className="flex gap-3">
                 <DetailIcon
                   aria-hidden
-                  strokeWidth={1.25}
-                  className="mt-0.5 size-5 shrink-0 text-ocean dark:text-gold"
+                  className="mt-0.5 size-6 shrink-0 text-bronze"
                 />
                 <div className="min-w-0">
-                  <dt className="font-heading text-[0.7rem] font-semibold uppercase tracking-brand text-navy dark:text-ivory">
-                    {title}
-                  </dt>
-                  {lines.map(({ text, href }) => (
-                    <dd key={text} className="mt-1 break-words text-sm text-muted-foreground">
-                      {href ? (
-                        <a
-                          href={href}
-                          className="transition-colors hover:text-ocean dark:hover:text-gold"
-                        >
-                          {text}
-                        </a>
-                      ) : (
-                        text
-                      )}
-                    </dd>
-                  ))}
+                  <h3 className="text-lg">{title}</h3>
+                  <ul>
+                    {lines.map(({ text, href }) => (
+                      <li key={text} className="mt-1 break-words text-muted-foreground">
+                        {href ? (
+                          <a
+                            href={href}
+                            className="inline-flex min-h-tap items-center font-bold text-primary underline underline-offset-4 hover:no-underline"
+                          >
+                            {text}
+                          </a>
+                        ) : (
+                          text
+                        )}
+                      </li>
+                    ))}
+                  </ul>
                 </div>
-              </div>
+              </li>
             ))}
-          </dl>
+          </ul>
 
-          <div className="mt-12 overflow-hidden border border-border">
+          <div className="mt-8 overflow-hidden rounded-lg border border-border">
             <iframe
               title={`Map showing ${siteConfig.name} at ${fullAddress}`}
               src={mapSrc}
@@ -222,28 +218,23 @@ export const ContactSection = () => {
           </div>
         </div>
 
-        <div className="h-fit border border-border bg-card p-8 sm:p-10">
-          <h3 className="display-title text-4xl text-navy dark:text-ivory">
-            Send us a message
-          </h3>
-          <p className="mt-3 text-muted-foreground">
-            We will get back to you as soon as possible.
+        <div className="h-fit rounded-lg border border-border bg-card p-5 shadow-sm sm:p-8">
+          <h3 className="text-3xl">Send us a message</h3>
+          <p className="mt-2 text-muted-foreground">
+            We will get back to you as soon as possible. All fields are required.
           </p>
-          <div aria-hidden className="my-8 h-px w-16 bg-gold" />
+          <div aria-hidden className="my-6 h-1 w-12 rounded-full bg-bronze" />
 
           {submitState.status === "sent" ? (
-            <div role="status" className="flex flex-col items-start gap-4 py-6">
-              <CheckCircle2 strokeWidth={1.25} className="size-10 text-ocean dark:text-gold" />
-              <p className="display-title text-3xl text-navy dark:text-ivory">
-                Thank you
-              </p>
+            <div role="status" className="flex flex-col items-start gap-4 py-4">
+              <CheckCircle2 aria-hidden className="size-10 text-success" />
+              <p className="text-2xl font-bold">Message sent - thank you</p>
               <p className="text-muted-foreground">
                 Your message is on its way. Our team will reply to your email
                 shortly.
               </p>
               <Button
-                variant="navyOutline"
-                size="brand"
+                variant="secondary"
                 onClick={() => setSubmitState({ status: "idle" })}
               >
                 Send another message
@@ -251,19 +242,18 @@ export const ContactSection = () => {
             </div>
           ) : (
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-7">
-                <div className="grid gap-7 sm:grid-cols-2">
+              <form onSubmit={form.handleSubmit(onSubmit)} noValidate className="grid gap-5">
+                <div className="grid gap-5 sm:grid-cols-2">
                   <FormField
                     control={form.control}
                     name="firstName"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className={labelClass}>First Name</FormLabel>
+                        <FormLabel>First name</FormLabel>
                         <FormControl>
                           <Input
                             placeholder="Pitso"
                             autoComplete="given-name"
-                            className={fieldClass}
                             {...field}
                           />
                         </FormControl>
@@ -276,12 +266,11 @@ export const ContactSection = () => {
                     name="lastName"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className={labelClass}>Last Name</FormLabel>
+                        <FormLabel>Last name</FormLabel>
                         <FormControl>
                           <Input
                             placeholder="Mosimane"
                             autoComplete="family-name"
-                            className={fieldClass}
                             {...field}
                           />
                         </FormControl>
@@ -296,13 +285,12 @@ export const ContactSection = () => {
                   name="email"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className={labelClass}>Email</FormLabel>
+                      <FormLabel>Email</FormLabel>
                       <FormControl>
                         <Input
                           type="email"
                           placeholder="pitsomosimane@example.com"
                           autoComplete="email"
-                          className={fieldClass}
                           {...field}
                         />
                       </FormControl>
@@ -316,12 +304,10 @@ export const ContactSection = () => {
                   name="subject"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className={labelClass}>Subject</FormLabel>
+                      <FormLabel>Subject</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
-                          <SelectTrigger
-                            className={`${fieldClass} focus:border-b-2 focus:border-ocean focus:ring-0 focus:ring-offset-0 dark:focus:border-gold`}
-                          >
+                          <SelectTrigger>
                             <SelectValue placeholder="Select a subject" />
                           </SelectTrigger>
                         </FormControl>
@@ -343,12 +329,12 @@ export const ContactSection = () => {
                   name="message"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className={labelClass}>Message</FormLabel>
+                      <FormLabel>Message</FormLabel>
                       <FormControl>
                         <Textarea
                           rows={4}
                           placeholder="Tell us about your stay, dates, or special requests..."
-                          className={`${fieldClass} resize-none`}
+                          className="resize-y"
                           {...field}
                         />
                       </FormControl>
@@ -358,37 +344,32 @@ export const ContactSection = () => {
                 />
 
                 {submitState.status === "error" && (
-                  <div
-                    role="alert"
-                    className="border-l-2 border-destructive bg-destructive/5 px-4 py-3 text-sm"
-                  >
-                    We couldn&apos;t send your message right now.{" "}
+                  <Alert variant="danger" title="We couldn't send your message right now">
                     <a
                       href={submitState.mailto}
-                      className="font-semibold text-ocean underline underline-offset-2 dark:text-gold"
+                      className="font-bold text-primary underline underline-offset-4 hover:no-underline"
                     >
                       Send it by email instead
                     </a>{" "}
                     or call us on{" "}
                     <a
                       href={telHref(siteConfig.phone.frontDesk)}
-                      className="font-semibold text-ocean underline underline-offset-2 dark:text-gold"
+                      className="font-bold text-primary underline underline-offset-4 hover:no-underline"
                     >
                       {siteConfig.phone.frontDesk}
                     </a>
                     .
-                  </div>
+                  </Alert>
                 )}
 
                 <Button
                   type="submit"
-                  variant="gold"
-                  size="brand"
-                  className="justify-self-start"
+                  size="lg"
+                  className="w-full sm:w-auto sm:justify-self-start"
                   disabled={form.formState.isSubmitting}
                 >
                   {form.formState.isSubmitting && (
-                    <Loader2 className="mr-2 size-4 animate-spin" />
+                    <Loader2 aria-hidden className="motion-safe:animate-spin" />
                   )}
                   Send message
                 </Button>

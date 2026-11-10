@@ -4,7 +4,9 @@ import { useEffect, useState } from "react";
 import { getPayments, type Payment } from "@/lib/api/payment";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
+import { StatusBadge } from "@/components/ui/status-badge";
+import { EmptyState, ErrorState, LoadingState } from "@/components/ui/state";
+import { PageHeader } from "@/components/admin/page-header";
 import { formatAdminDateTime } from "@/lib/date-format";
 import {
   Select,
@@ -59,22 +61,25 @@ export default function PaymentsPage() {
   });
 
   return (
-    <div className="flex flex-col gap-6 p-6">
-      <div>
-        <h1 className="text-2xl font-semibold">Payments</h1>
-        <p className="text-sm text-muted-foreground">
-          Payment activity across all invoices.
-        </p>
-      </div>
+    <div className="flex flex-col gap-6">
+      <PageHeader
+        title="Payments"
+        description="Payment activity across all invoices."
+        className="mb-0"
+      />
 
-      <div className="flex flex-wrap items-end gap-4">
+      <div
+        role="group"
+        aria-label="Filter payments"
+        className="grid grid-cols-1 gap-4 rounded-lg border border-border bg-card p-4 sm:grid-cols-2 lg:flex lg:flex-wrap lg:items-end"
+      >
         <div className="flex flex-col gap-1.5">
-          <label className="text-sm font-medium">Status</label>
+          <label htmlFor="payment-status" className="text-base font-bold">Status</label>
           <Select
             value={statusFilter}
             onValueChange={(value) => setStatusFilter(value as StatusFilter)}
           >
-            <SelectTrigger className="w-[160px]">
+            <SelectTrigger id="payment-status" className="lg:w-44">
               <SelectValue placeholder="All statuses" />
             </SelectTrigger>
             <SelectContent>
@@ -87,7 +92,7 @@ export default function PaymentsPage() {
         </div>
 
         <div className="flex flex-col gap-1.5">
-          <label htmlFor="payment-date" className="text-sm font-medium">
+          <label htmlFor="payment-date" className="text-base font-bold">
             Payment date
           </label>
           <Input
@@ -95,18 +100,18 @@ export default function PaymentsPage() {
             type="date"
             value={dateFilter}
             onChange={(e) => setDateFilter(e.target.value)}
-            className="w-[160px]"
+            className="lg:w-44"
           />
         </div>
 
         <div className="flex flex-col gap-1.5">
-          <label htmlFor="payment-search" className="text-sm font-medium">
+          <label htmlFor="payment-search" className="text-base font-bold">
             Invoice reference
           </label>
           <Input
             id="payment-search"
-            className="w-[220px]"
-            placeholder="Search reference..."
+            className="lg:w-56"
+            placeholder="e.g. INV-1001"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -114,8 +119,8 @@ export default function PaymentsPage() {
 
         {(statusFilter !== "ALL" || dateFilter || search) && (
           <Button
-            variant="ghost"
-            size="sm"
+            variant="secondary"
+            className="sm:justify-self-start"
             onClick={() => {
               setStatusFilter("ALL");
               setDateFilter("");
@@ -127,13 +132,18 @@ export default function PaymentsPage() {
         )}
       </div>
 
-      {loading && (
-        <p className="text-sm text-muted-foreground">Loading payments...</p>
-      )}
-      {error && <p className="text-sm text-destructive">Error: {error}</p>}
+      {loading && <LoadingState label="Loading payments…" />}
+      {error && <ErrorState title="Payments could not be loaded" message={error} />}
 
-      {!loading && !error && (
-        <Table>
+      {!loading && !error && visiblePayments.length === 0 && (
+        <EmptyState
+          title="No payments found"
+          description="Try clearing the filters, or check back after guests pay."
+        />
+      )}
+
+      {!loading && !error && visiblePayments.length > 0 && (
+        <Table label="Payments">
           <TableHeader>
             <TableRow>
               <TableHead>Payment ID</TableHead>
@@ -144,42 +154,21 @@ export default function PaymentsPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {visiblePayments.length === 0 ? (
-              <TableRow>
-                <TableCell
-                  colSpan={5}
-                  className="py-8 text-center text-muted-foreground"
-                >
-                  No payments found.
-                </TableCell>
-              </TableRow>
-            ) : (
-              visiblePayments.map((payment) => (
+            {visiblePayments.map((payment) => (
                 <TableRow key={payment.paymentId}>
-                  <TableCell>{payment.paymentId}</TableCell>
-                  <TableCell>{payment.invoiceReference}</TableCell>
-                  <TableCell>
-                    <Badge
-                      variant={
-                        payment.paymentStatus === "FAILED"
-                          ? "destructive"
-                          : payment.paymentStatus === "PENDING"
-                            ? "secondary"
-                            : "default"
-                      }
-                    >
-                      {payment.paymentStatus}
-                    </Badge>
+                  <TableCell data-label="Payment ID" className="tabular-nums">{payment.paymentId}</TableCell>
+                  <TableCell data-label="Invoice reference" className="font-bold">{payment.invoiceReference}</TableCell>
+                  <TableCell data-label="Status">
+                    <StatusBadge status={payment.paymentStatus} />
                   </TableCell>
-                  <TableCell>
+                  <TableCell data-label="Payment date" className="whitespace-nowrap">
                     {formatAdminDateTime(payment.paymentDate)}
                   </TableCell>
-                  <TableCell className="text-right">
+                  <TableCell data-label="Amount" className="text-right font-bold tabular-nums">
                     R{payment.amount.toFixed(2)}
                   </TableCell>
                 </TableRow>
-              ))
-            )}
+              ))}
           </TableBody>
         </Table>
       )}

@@ -1,7 +1,8 @@
 import { useId } from "react";
 import { cn } from "@/lib/utils";
 
-type LogoTone = "gold" | "white";
+/** gold: on navy · white: on photos · ink: on light surfaces */
+type LogoTone = "gold" | "white" | "ink";
 
 interface LogoMarkProps {
   tone?: LogoTone;
@@ -13,8 +14,8 @@ interface LogoMarkProps {
 /**
  * The Margin Hotel mark: a slim tower with a 2x4 window grid, standing on a
  * base line above three waves. Drawn on a 48-unit grid so it stays crisp from favicon size up.
- * Gold uses the soft metallic gradient; white is the reversed version for
- * dark or photographic backgrounds.
+ * Gold uses the soft metallic gradient (navy surfaces only); white is the
+ * reversed version for photos; ink is the bronze mark for light surfaces.
  */
 export const LogoMark = ({ tone = "gold", className, title }: LogoMarkProps) => {
   const gradientId = `margin-gold-${useId().replace(/:/g, "")}`;
@@ -24,7 +25,7 @@ export const LogoMark = ({ tone = "gold", className, title }: LogoMarkProps) => 
     <svg
       viewBox="0 0 48 48"
       fill="none"
-      className={cn(tone === "white" && "text-white", className)}
+      className={cn(tone === "white" && "text-white", tone === "ink" && "text-bronze", className)}
       role={title ? "img" : undefined}
       aria-hidden={title ? undefined : true}
       aria-label={title}
@@ -65,15 +66,17 @@ interface LogoProps {
  */
 export const Logo = ({ tone = "gold", className, markClassName = "size-8" }: LogoProps) => {
   const word = cn(
-    "font-heading font-medium uppercase tracking-wide2",
+    // nowrap + overflow-wrap:normal: never break "Margin"/"Hotel" mid-word
+    // (the global overflow-wrap: break-word would otherwise split them).
+    "shrink-0 whitespace-nowrap font-heading font-bold uppercase tracking-[0.18em] [overflow-wrap:normal]",
     // Letter-spacing adds trailing space after the last letter - pull it back
     // so the mark sits optically centred between the two words.
-    "[&>span]:-mr-[0.32em]",
-    tone === "gold" ? "text-gold-metallic" : "text-white"
+    "[&>span]:-mr-[0.18em]",
+    tone === "gold" ? "text-brand-gold" : tone === "ink" ? "text-foreground" : "text-white"
   );
 
   return (
-    <span className={cn("inline-flex items-center gap-3 leading-none", className)}>
+    <span className={cn("inline-flex shrink-0 items-center gap-3 whitespace-nowrap leading-none", className)}>
       <span className={word} aria-hidden="true">
         <span>Margin</span>
       </span>
@@ -90,7 +93,7 @@ export const Logo = ({ tone = "gold", className, markClassName = "size-8" }: Log
 export const LogoBadge = ({ className }: { className?: string }) => (
   <span
     className={cn(
-      "inline-flex items-center justify-center rounded-[22%] bg-navy p-[14%]",
+      "inline-flex items-center justify-center rounded-md bg-brand p-[14%]",
       className
     )}
   >

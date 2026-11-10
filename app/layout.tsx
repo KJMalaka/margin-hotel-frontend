@@ -5,34 +5,18 @@ import { cn } from "@/lib/utils";
 import { ThemeProvider } from "@/components/layout/theme-provider";
 import { siteConfig } from "@/config/site";
 
-// Brand fonts are self-hosted (latin subset, from Google Fonts - SIL Open
-// Font License, see app/fonts/README.md) so builds don't depend on a network
-// fetch and pages never flash a fallback font.
-
-// Display titles: tall, condensed, high-contrast serif.
-const display = localFont({
-  src: [
-    { path: "./fonts/InstrumentSerif-normal.woff2", weight: "400", style: "normal" },
-    { path: "./fonts/InstrumentSerif-italic.woff2", weight: "400", style: "italic" },
-  ],
-  variable: "--font-display",
-  display: "swap",
-});
-
-// Headings, labels and the wordmark: geometric sans, set uppercase + tracked.
-const heading = localFont({
-  src: "./fonts/Montserrat-normal.woff2",
-  weight: "400 600",
-  variable: "--font-heading",
-  display: "swap",
-});
-
-// Body copy.
+// Atkinson Hyperlegible (Braille Institute) for all text. Self-hosted latin
+// subset - see app/fonts/README.md - so builds need no network fetch, and
+// next/font generates a size-adjusted Arial fallback so the swap causes no
+// layout shift.
 const body = localFont({
-  src: "./fonts/HankenGrotesk-normal.woff2",
-  weight: "300 700",
+  src: [
+    { path: "./fonts/AtkinsonHyperlegible-400.woff2", weight: "400", style: "normal" },
+    { path: "./fonts/AtkinsonHyperlegible-700.woff2", weight: "700", style: "normal" },
+  ],
   variable: "--font-body",
   display: "swap",
+  adjustFontFallback: "Arial",
 });
 
 export const metadata: Metadata = {
@@ -42,8 +26,8 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#113F61" },
-    { media: "(prefers-color-scheme: dark)", color: "#092336" },
+    { media: "(prefers-color-scheme: light)", color: "#14324A" },
+    { media: "(prefers-color-scheme: dark)", color: "#0D2232" },
   ],
 };
 
@@ -57,11 +41,16 @@ export default function RootLayout({
       <body
         className={cn(
           "min-h-screen bg-background",
-          display.variable,
-          heading.variable,
           body.variable
         )}
       >
+        {/* First tab stop on every page: jump past the menu. */}
+        <a
+          href="#main"
+          className="sr-only-focusable fixed left-4 top-4 z-[100] rounded-md bg-primary px-4 py-3 font-bold text-primary-foreground shadow-lg"
+        >
+          Skip to main content
+        </a>
         <ThemeProvider
           attribute="class"
           defaultTheme="light"

@@ -2,174 +2,151 @@
 @tailwind components;
 @tailwind utilities;
 
-html {
-  scroll-behavior: smooth;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  html {
-    scroll-behavior: auto;
-  }
-}
-
-@page {
-  size: A4 portrait;
-  margin: 12mm;
-}
-
-@media print {
-  html,
-  body {
-    height: auto !important;
-    overflow: visible !important;
-    background: #fff !important;
-  }
-
-  body * {
-    visibility: hidden !important;
-  }
-
-  .booking-receipt,
-  .booking-receipt * {
-    visibility: visible !important;
-  }
-
-  .booking-receipt {
-    position: absolute !important;
-    top: 0 !important;
-    left: 0 !important;
-    width: 100% !important;
-    max-width: none !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    color: #111 !important;
-    background: #fff !important;
-    font-size: 10pt !important;
-    line-height: 1.35 !important;
-    break-before: avoid-page !important;
-    break-after: avoid-page !important;
-    page-break-before: avoid !important;
-    page-break-after: avoid !important;
-  }
-
-  .booking-receipt .booking-progress,
-  .booking-receipt .receipt-actions {
-    display: none !important;
-  }
-
-  .booking-receipt * {
-    box-shadow: none !important;
-    text-shadow: none !important;
-  }
-
-  .booking-receipt {
-    break-inside: avoid-page !important;
-    page-break-inside: avoid !important;
-  }
-
-  .booking-receipt * {
-    color: #111 !important;
-    border-color: #cbd5e1 !important;
-  }
-
-  .booking-receipt h2 {
-    font-size: 24pt !important;
-  }
-
-  .booking-receipt dd,
-  .booking-receipt dt,
-  .booking-receipt p,
-  .booking-receipt span {
-    font-size: 9pt !important;
-  }
-}
-
-/* *=========== Margin Hotel brand theme ===========
-   Deep Navy #113F61 · Midnight Navy #092336 · Ocean Blue #195b8c
-   Champagne Gold #C7AE6A · Light Gold #d5c28f · Deep Gold #b99a45
-   Gold fails contrast on light backgrounds (2.6:1), so on ivory/white it is
-   only used for rules, borders and fills - never for text. */
+/* =========== Margin Hotel design tokens ===========
+   Every colour in the UI comes from here. Values are space-separated RGB
+   channels so Tailwind opacity modifiers (bg-primary/90) keep working.
+   Contrast was checked against WCAG 2.2 AA: text pairs >= 4.5:1, control
+   borders, focus rings and icons >= 3:1. Change a value here, re-check it. */
 @layer base {
   :root {
-    --background: 43 41% 97%; /* ivory #FAF8F3 */
-    --foreground: 205.5 70% 22.4%; /* deep navy */
+    /* Surfaces and text */
+    --background: 251 248 243; /* #FBF8F3 warm linen */
+    --foreground: 28 39 49; /* #1C2731 ink, 14.3:1 on linen */
+    --card: 255 255 255;
+    --card-foreground: 28 39 49;
+    --popover: 255 255 255;
+    --popover-foreground: 28 39 49;
+    --muted: 242 236 226; /* #F2ECE2 sand */
+    --muted-foreground: 77 90 102; /* #4D5A66, 6.0:1 on sand */
+    --accent: 234 226 213; /* #EAE2D5 hover tint */
+    --accent-foreground: 28 39 49;
 
-    --card: 0 0% 100%;
-    --card-foreground: 205.5 70% 22.4%;
+    /* Actions */
+    --primary: 29 78 110; /* #1D4E6E harbour blue, 8.9:1 with white */
+    --primary-foreground: 255 255 255;
+    --primary-hover: 22 61 87;
+    --secondary: 255 255 255;
+    --secondary-foreground: 28 39 49;
+    --view: 14 110 102; /* #0E6E66 teal - "View" actions only */
+    --view-foreground: 255 255 255;
+    --view-hover: 10 86 80;
+    --destructive: 179 38 30; /* #B3261E */
+    --destructive-foreground: 255 255 255;
+    --destructive-hover: 143 30 24;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 205.5 70% 22.4%;
+    /* Lines and focus */
+    --border: 227 218 205; /* #E3DACD decorative hairlines */
+    --input: 125 114 102; /* #7D7266 control borders, >= 4.4:1 */
+    --ring-base: 181 83 11; /* #B5530B focus ring, 4.7:1 on linen */
+    --ring: var(--ring-base);
 
-    --primary: 44 45% 60%; /* champagne gold */
-    --primary-foreground: 205 71% 12.4%; /* midnight navy */
+    /* Brand */
+    --brand: 20 50 74; /* #14324A header/footer navy */
+    --brand-foreground: 251 248 243;
+    --brand-gold: 226 194 122; /* #E2C27A - on navy only (7.7:1) */
+    --bronze: 138 98 35; /* #8A6223 - gold accent safe for text on light */
 
-    --secondary: 43 36% 92%;
-    --secondary-foreground: 205.5 70% 22.4%;
+    /* Status - always paired with an icon and a word, never colour alone */
+    --success: 27 94 54;
+    --success-bg: 227 241 231;
+    --warning: 122 74 0;
+    --warning-bg: 251 239 217;
+    --danger: 154 31 23;
+    --danger-bg: 251 229 227;
+    --info: 29 78 110;
+    --info-bg: 228 238 245;
 
-    --muted: 43 32% 93%;
-    --muted-foreground: 205 28% 36%;
+    /* Shape and rhythm */
+    --radius-sm: 0.375rem;
+    --radius-md: 0.625rem;
+    --radius-lg: 1rem;
+    --space-section: clamp(3rem, 2rem + 4vw, 6rem);
+    --measure: 68ch;
+    --shadow-color: 28 39 49;
 
-    --accent: 43 36% 92%;
-    --accent-foreground: 205.5 70% 22.4%;
-
-    --destructive: 0 65% 45%;
-    --destructive-foreground: 0 0% 100%;
-
-    --border: 44 32% 85%;
-    --input: 44 26% 80%;
-    --ring: 205.6 70% 32.4%; /* ocean blue */
-    --radius: 0.25rem;
-
-    /* Sidebar reuses the --card tone (not --background) so the floating
-       menu panel reads as a distinct surface instead of blending into the
-       page behind it. */
-    --sidebar-background: 0 0% 100%;
-    --sidebar-foreground: 205.5 70% 22.4%;
-    --sidebar-primary: 205.5 70% 22.4%;
-    --sidebar-primary-foreground: 43 41% 97%;
-    --sidebar-accent: 43 36% 92%;
-    --sidebar-accent-foreground: 205.5 70% 22.4%;
-    --sidebar-border: 44 32% 85%;
-    --sidebar-ring: 205.6 70% 32.4%;
+    /* Admin sidebar - navy panel. Linen text 12.5:1, gold active item
+       with navy text 7.7:1, hover tint keeps linen at 8.9:1. */
+    --sidebar-background: 20 50 74; /* #14324A */
+    --sidebar-foreground: 251 248 243;
+    --sidebar-primary: 226 194 122; /* gold - current page */
+    --sidebar-primary-foreground: 20 50 74;
+    --sidebar-accent: 36 73 106; /* #24496A hover */
+    --sidebar-accent-foreground: 251 248 243;
+    --sidebar-border: 46 81 112;
+    --sidebar-ring: 226 194 122;
   }
 
   .dark {
-    --background: 205 71% 12.4%; /* midnight navy */
-    --foreground: 43 41% 95%;
+    --background: 18 26 33; /* #121A21 */
+    --foreground: 243 238 230; /* 15.2:1 */
+    --card: 26 36 45;
+    --card-foreground: 243 238 230;
+    --popover: 26 36 45;
+    --popover-foreground: 243 238 230;
+    --muted: 34 48 59;
+    --muted-foreground: 183 192 200;
+    --accent: 42 57 69;
+    --accent-foreground: 243 238 230;
 
-    --card: 205 62% 16%;
-    --card-foreground: 43 41% 95%;
+    --primary: 156 199 228;
+    --primary-foreground: 14 36 51;
+    --primary-hover: 184 216 238;
+    --secondary: 26 36 45;
+    --secondary-foreground: 243 238 230;
+    --view: 127 209 198;
+    --view-foreground: 11 43 40;
+    --view-hover: 163 224 216;
+    --destructive: 242 162 155;
+    --destructive-foreground: 58 10 7;
+    --destructive-hover: 246 189 183;
 
-    --popover: 205 62% 16%;
-    --popover-foreground: 43 41% 95%;
+    --border: 44 58 70;
+    --input: 126 139 150;
+    --ring-base: 240 180 90;
+    --ring: var(--ring-base);
 
-    --primary: 44 45% 60%;
-    --primary-foreground: 205 71% 12.4%;
+    --brand: 13 34 50;
+    --brand-foreground: 243 238 230;
+    --brand-gold: 226 194 122;
+    --bronze: 226 194 122;
 
-    --secondary: 205 52% 20%;
-    --secondary-foreground: 43 41% 95%;
+    --success: 143 211 166;
+    --success-bg: 22 48 31;
+    --warning: 242 196 109;
+    --warning-bg: 51 38 12;
+    --danger: 242 162 155;
+    --danger-bg: 58 23 20;
+    --info: 156 199 228;
+    --info-bg: 22 41 58;
 
-    --muted: 205 52% 20%;
-    --muted-foreground: 43 18% 72%;
+    --shadow-color: 0 0 0;
 
-    --accent: 205 52% 22%;
-    --accent-foreground: 43 41% 95%;
+    --sidebar-background: 13 34 50; /* #0D2232 */
+    --sidebar-foreground: 243 238 230;
+    --sidebar-primary: 226 194 122;
+    --sidebar-primary-foreground: 13 34 50;
+    --sidebar-accent: 27 58 82;
+    --sidebar-accent-foreground: 243 238 230;
+    --sidebar-border: 40 70 96;
+    --sidebar-ring: 226 194 122;
+  }
 
-    --destructive: 0 62% 50%;
-    --destructive-foreground: 0 0% 100%;
+  /* Navy brand surfaces (hero, amenities, footer). Text inside uses the
+     brand-* colours explicitly; the focus ring turns gold (7.7:1 on navy).
+     Light cards placed on navy get the normal ring back. */
+  .surface-brand {
+    --ring: var(--brand-gold);
+    background-color: rgb(var(--brand));
+    color: rgb(var(--brand-foreground));
+  }
+  /* Admin sidebar panel (desktop and mobile sheet). */
+  [data-sidebar="sidebar"] {
+    --ring: var(--sidebar-ring);
+  }
 
-    --border: 205 42% 24%;
-    --input: 205 42% 26%;
-    --ring: 44 45% 60%;
-
-    --sidebar-background: 205 62% 16%;
-    --sidebar-foreground: 43 41% 95%;
-    --sidebar-primary: 44 45% 60%;
-    --sidebar-primary-foreground: 205 71% 12.4%;
-    --sidebar-accent: 205 52% 20%;
-    --sidebar-accent-foreground: 43 41% 95%;
-    --sidebar-border: 205 42% 24%;
-    --sidebar-ring: 44 45% 60%;
+  .surface-brand .bg-card,
+  .surface-brand .bg-background {
+    --ring: var(--ring-base);
   }
 }
 
@@ -177,48 +154,149 @@ html {
   * {
     @apply border-border;
   }
+
+  html {
+    scroll-behavior: smooth;
+    /* Keep anchor targets clear of the sticky header. */
+    scroll-padding-top: 5rem;
+    -webkit-text-size-adjust: 100%;
+  }
+
   body {
-    @apply bg-background text-foreground font-sans antialiased;
-    line-height: 1.7;
+    @apply bg-background font-sans text-base text-foreground antialiased;
+    line-height: 1.5;
+    overflow-wrap: break-word;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply font-heading font-bold text-foreground;
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  /* One visible focus style for everything interactive. */
+  :focus-visible {
+    outline: 3px solid rgb(var(--ring));
+    outline-offset: 2px;
+  }
+
+  ::selection {
+    background-color: rgb(var(--brand-gold) / 0.45);
+    color: rgb(var(--foreground));
   }
 }
 
 @layer components {
-  /* Small uppercase label above section titles. */
+  /* Short label above a section title - sentence case, not shouty caps. */
   .eyebrow {
-    @apply font-heading text-xs font-medium uppercase tracking-wide2;
+    @apply font-heading text-base font-bold text-bronze;
   }
 
-  /* Large, airy serif display titles. */
+  /* Large section and page titles. */
   .display-title {
-    @apply font-display font-normal leading-[1.02] tracking-[-0.005em];
+    @apply font-heading text-4xl font-bold sm:text-5xl;
   }
 
-  /* Signature full-width hairline at the top and bottom of sections:
-     gold on navy, navy on light backgrounds (as in the brand guide). */
-  .section-rule {
-    @apply pointer-events-none absolute inset-x-0 h-px bg-navy/70 dark:bg-gold/40;
-  }
-  .section-rule-gold {
-    @apply pointer-events-none absolute inset-x-0 h-px bg-gold/80;
+  /* Comfortable reading width for paragraphs. */
+  .measure {
+    max-width: var(--measure);
   }
 
-  /* Soft metallic gold - logo and key accents only. */
-  .gold-metallic {
-    background-image: linear-gradient(100deg, #b99a45 0%, #f5e9a8 50%, #b99a45 100%);
+  /* Vertical rhythm between page sections. */
+  .section-y {
+    padding-block: var(--space-section);
   }
-  .text-gold-metallic {
-    @apply gold-metallic bg-clip-text text-transparent;
+
+  /* Visually hidden but read by screen readers. */
+  .sr-only-focusable:not(:focus):not(:focus-within) {
+    @apply sr-only;
   }
 }
 
 @layer utilities {
   /* Split layouts: pad the text panel so it lines up with .container content
-     (max 1400px, 1.5rem gutter) while the photo runs full-bleed. */
+     while the photo runs full-bleed. */
   .edge-pl {
-    padding-left: max(1.5rem, calc((100vw - 1400px) / 2 + 1.5rem));
+    padding-left: max(1rem, calc((100vw - 1280px) / 2 + 1rem));
   }
   .edge-pr {
-    padding-right: max(1.5rem, calc((100vw - 1400px) / 2 + 1.5rem));
+    padding-right: max(1rem, calc((100vw - 1280px) / 2 + 1rem));
+  }
+}
+
+/* Data tables collapse to one card per row on narrow screens (and at 200%
+   zoom), so the page never scrolls sideways. See components/ui/table.tsx. */
+@media (max-width: 639.98px) {
+  .table-stack-wrap {
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+    overflow: visible;
+  }
+  .table-stack thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+  .table-stack,
+  .table-stack tbody,
+  .table-stack tfoot,
+  .table-stack tr,
+  .table-stack td {
+    display: block;
+    width: 100%;
+  }
+  .table-stack tr {
+    margin-bottom: 0.75rem;
+    padding: 0.25rem 1rem;
+    border: 1px solid rgb(var(--border));
+    border-radius: var(--radius-lg);
+    background: rgb(var(--card));
+    box-shadow: 0 1px 2px rgb(var(--shadow-color) / 0.06);
+  }
+  .table-stack td {
+    display: grid;
+    grid-template-columns: minmax(6.5rem, 40%) 1fr;
+    gap: 0.75rem;
+    align-items: start;
+    padding: 0.625rem 0;
+    text-align: left;
+    border-bottom: 1px solid rgb(var(--border));
+  }
+  .table-stack td:last-child {
+    border-bottom: 0;
+  }
+  .table-stack td[data-label]::before {
+    content: attr(data-label);
+    font-weight: 700;
+    color: rgb(var(--muted-foreground));
+  }
+  .table-stack td:not([data-label]) {
+    display: block;
+  }
+}
+
+/* Respect users who ask for less motion: no smooth scroll, no transitions,
+   no animations (carousels and marquees stop moving). */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

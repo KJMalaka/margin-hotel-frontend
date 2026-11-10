@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 
+import { Check, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
     Dialog,
@@ -46,43 +47,37 @@ export function AddBookingDialog({ onBookingCreated }: AddBookingDialogProps) {
             }}
         >
             <DialogTrigger asChild>
-                <Button className="font-bold">Add Booking</Button>
+                <Button>
+                    <Plus aria-hidden />
+                    Add booking
+                </Button>
             </DialogTrigger>
 
-            <DialogContent
-                overlayClassName="bg-background"
-                closeButtonClassName="!fixed !right-4 !top-4 !z-[60] !flex !h-11 !w-11 items-center justify-center rounded-full border border-gold bg-navy text-gold opacity-100 shadow-lg hover:bg-gold hover:text-navy-midnight focus:ring-gold"
-                className="!inset-0 !left-0 !top-0 !h-dvh !max-h-none !w-screen !max-w-none !translate-x-0 !translate-y-0 !grid-cols-1 !gap-0 !rounded-none !border-0 !p-0 !shadow-none overflow-y-auto bg-background text-foreground [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-            >
-                <div className="flex min-h-full items-start justify-center px-3 pb-8 pt-20 sm:px-8 sm:pb-12">
-                    <div className="w-full max-w-3xl border border-gold/70 bg-background p-4 text-foreground sm:p-8">
-                        <div className="mb-6 space-y-2 pr-12">
-                            <h2 className="font-display text-3xl">New booking</h2>
-                            <p className="text-sm text-muted-foreground">
-                                Enter the guest&apos;s details and stay information.
-                            </p>
-                        </div>
+            <DialogContent className="max-w-lg">
+                <DialogHeader>
+                    <DialogTitle>New booking</DialogTitle>
+                </DialogHeader>
 
-                        <div className="mb-6 flex flex-wrap gap-2">
-                            {STAFF_CHANNELS.map((c) => (
-                                <Button
-                                    key={c.value}
-                                    type="button"
-                                    variant={channel === c.value ? "default" : "outline"}
-                                    size="sm"
-                                    onClick={() => setChannel(c.value)}
-                                >
-                                    {c.label}
-                                </Button>
-                            ))}
-                        </div>
+                <p className="-mt-2 text-muted-foreground">
+                    Create a booking on the guest&apos;s behalf — for walk-ins or
+                    phone reservations.
+                </p>
 
-                        <BookingForm
-                            key={channel}
-                            channel={channel}
-                            onSuccess={handleSuccess}
-                        />
-                    </div>
+                <div role="group" aria-label="Booking channel" className="flex flex-wrap gap-2">
+                    {STAFF_CHANNELS.map((c) => (
+                        <Button
+                            key={c.value}
+                            type="button"
+                            variant={channel === c.value ? "default" : "outline"}
+                            size="sm"
+                            aria-pressed={channel === c.value}
+                            onClick={() => setChannel(c.value)}
+                        >
+                            {/* Tick marks the choice without relying on colour. */}
+                            {channel === c.value && <Check aria-hidden />}
+                            {c.label}
+                        </Button>
+                    ))}
                 </div>
             </DialogContent>
         </Dialog>

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { CreditCard, Lock, Smartphone } from "lucide-react";
+import { Check, CreditCard, Lock, Smartphone } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -92,10 +92,10 @@ export function PaymentMethodStep({
     }
 
     return (
-        <div className="space-y-5 border bg-card p-5">
-            <h3 className="font-semibold">Choose how to pay</h3>
+        <div className="space-y-5 rounded-lg border border-border bg-card p-4 sm:p-5">
+            <h3 id="pay-method-label" className="text-xl">Choose how to pay</h3>
 
-            <div role="radiogroup" aria-label="Payment method" className="grid grid-cols-3 gap-2">
+            <div role="radiogroup" aria-labelledby="pay-method-label" className="grid grid-cols-1 gap-2 min-[400px]:grid-cols-3">
                 {METHOD_OPTIONS.map(({ value, icon: Icon }) => (
                     <button
                         key={value}
@@ -105,14 +105,21 @@ export function PaymentMethodStep({
                         disabled={disabled}
                         onClick={() => setMethod(value)}
                         className={cn(
-                            "flex h-16 flex-col items-center justify-center gap-1 border text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50",
+                            "relative flex min-h-16 items-center justify-center gap-2 rounded-md border-2 px-3 py-2 text-base font-bold transition-colors disabled:opacity-60 min-[400px]:flex-col min-[400px]:gap-1",
                             method === value
-                                ? "border-2 border-navy bg-secondary text-navy dark:border-gold dark:text-gold"
-                                : "border-input bg-background hover:bg-accent"
+                                ? "border-primary bg-info-bg text-foreground"
+                                : "border-input bg-card text-foreground hover:bg-accent"
                         )}
                     >
-                        <Icon className="h-5 w-5" aria-hidden="true" />
+                        <Icon className="size-5" aria-hidden="true" />
                         {PAYMENT_METHOD_LABELS[value]}
+                        {/* Tick shows the selection without relying on colour. */}
+                        {method === value && (
+                            <Check
+                                className="absolute right-1.5 top-1.5 size-4 text-primary"
+                                aria-hidden="true"
+                            />
+                        )}
                     </button>
                 ))}
             </div>
@@ -145,7 +152,7 @@ export function PaymentMethodStep({
                                                 inputMode="numeric"
                                                 autoComplete="cc-number"
                                                 placeholder="1234 5678 9012 3456"
-                                                className="pr-24 tracking-wider"
+                                                className="pr-24 tabular-nums"
                                                 {...field}
                                                 onChange={(event) =>
                                                     field.onChange(formatCardNumber(event.target.value))
@@ -153,7 +160,7 @@ export function PaymentMethodStep({
                                             />
                                         </FormControl>
                                         {cardBrand !== "CARD" && (
-                                            <span className="absolute right-3 top-1/2 -translate-y-1/2 rounded border bg-background px-2 py-0.5 text-xs font-bold text-navy dark:text-gold">
+                                            <span className="absolute right-3 top-1/2 -translate-y-1/2 rounded border border-border bg-muted px-2 py-0.5 text-xs font-bold text-foreground">
                                                 {CARD_BRAND_LABELS[cardBrand]}
                                             </span>
                                         )}
@@ -211,16 +218,16 @@ export function PaymentMethodStep({
                             control={form.control}
                             name="saveCard"
                             render={({ field }) => (
-                                <FormItem className="flex items-center gap-2 space-y-0">
+                                <FormItem className="flex min-h-tap items-center gap-3 space-y-0">
                                     <FormControl>
                                         <input
                                             type="checkbox"
                                             checked={field.value}
                                             onChange={(event) => field.onChange(event.target.checked)}
-                                            className="h-4 w-4 accent-navy"
+                                            className="size-5 accent-primary"
                                         />
                                     </FormControl>
-                                    <FormLabel className="font-normal text-muted-foreground">
+                                    <FormLabel className="font-normal">
                                         Save this card for future stays
                                     </FormLabel>
                                 </FormItem>
@@ -229,20 +236,19 @@ export function PaymentMethodStep({
 
                         <Button
                             type="submit"
-                            variant="gold"
-                            size="brand"
+                            size="lg"
                             className="w-full"
                             disabled={disabled}
                         >
-                            <Lock className="mr-2 h-4 w-4" aria-hidden="true" />
+                            <Lock aria-hidden="true" />
                             Pay {zar.format(total)}
                         </Button>
-                        <p className="text-center text-xs text-muted-foreground">
+                        <p className="text-center text-muted-foreground">
                             Demo only - no real card is charged.{" "}
                             <button
                                 type="button"
                                 onClick={fillTestCard}
-                                className="text-ocean underline underline-offset-4 dark:text-gold"
+                                className="inline-flex min-h-tap items-center font-bold text-primary underline underline-offset-4 hover:no-underline"
                             >
                                 Fill test card
                             </button>{" "}
@@ -252,22 +258,18 @@ export function PaymentMethodStep({
                 </Form>
             ) : (
                 <div className="space-y-3">
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-muted-foreground">
                         You&apos;ll confirm the payment in the {PAYMENT_METHOD_LABELS[method]} sheet.
                     </p>
-                    <button
+                    <Button
                         type="button"
+                        size="lg"
                         disabled={disabled}
                         onClick={() => setWalletOpen(method)}
-                        className={cn(
-                            "flex h-12 w-full items-center justify-center rounded-md text-base font-semibold transition-opacity hover:opacity-90 disabled:opacity-50",
-                            method === "APPLE_PAY"
-                                ? "bg-black text-white"
-                                : "border border-[#DADCE0] bg-white text-[#202124]"
-                        )}
+                        className="w-full"
                     >
                         Pay with {PAYMENT_METHOD_LABELS[method]}
-                    </button>
+                    </Button>
                 </div>
             )}
 

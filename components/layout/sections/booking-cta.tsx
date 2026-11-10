@@ -1,14 +1,17 @@
 import Image from "next/image";
-import { BookingSearch } from "@/components/layout/sections/booking-search";
+import Link from "next/link";
+import { CalendarDays } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { SectionHeading } from "@/components/brand/section";
 import { brandImages } from "@/config/images";
 import { siteConfig, telHref } from "@/config/site";
 
-/** Split layout: full-bleed sunset photo, navy panel with the availability search. */
+/** Split layout: full-bleed sunset photo, navy panel with one booking CTA.
+ *  (The full date search lives in the hero - no second copy here.) */
 export const BookingCtaSection = () => {
   return (
-    <section id="book" className="relative grid scroll-mt-24 bg-navy text-ivory lg:grid-cols-2">
-      <div className="relative min-h-[60vw] sm:min-h-[24rem] lg:min-h-[40rem]">
+    <section id="book" className="surface-brand relative grid lg:grid-cols-2">
+      <div className="relative min-h-[56vw] sm:min-h-[24rem] lg:min-h-[36rem]">
         <Image
           src={brandImages.booking.src}
           alt={brandImages.booking.alt}
@@ -18,38 +21,35 @@ export const BookingCtaSection = () => {
         />
       </div>
 
-      <div className="relative flex flex-col justify-center px-6 py-20 sm:py-24 lg:edge-pr lg:pl-16 xl:pl-24">
-        <span aria-hidden className="section-rule-gold top-10" />
+      <div className="section-y relative flex flex-col justify-center px-4 sm:px-6 lg:edge-pr lg:pl-12 xl:pl-16">
 
         <SectionHeading
           tone="navy"
           eyebrow="Reservations"
-          title={
-            <>
-              Your stay
-              <br />
-              begins here
-            </>
-          }
+          title="Your stay begins here"
           description="Choose your dates and we'll show you the rooms that fit. Free cancellation up to 48 hours before check-in."
         />
 
-        <BookingSearch className="mt-12 max-w-xl" />
+        <Button asChild variant="brand" size="lg" className="mt-8 self-start">
+          <Link href="/book">
+            <CalendarDays aria-hidden />
+            Choose your dates
+          </Link>
+        </Button>
 
-        <p className="mt-10 text-sm text-ivory/70">
+        <p className="measure mt-8 text-brand-foreground/90">
           Check-in from {siteConfig.hours.checkIn}, check-out by{" "}
           {siteConfig.hours.checkOut}. Prefer to speak to someone? Call our
           reservations team on{" "}
           <a
             href={telHref(siteConfig.phone.reservations)}
-            className="text-gold underline-offset-4 hover:underline"
+            className="whitespace-nowrap font-bold text-brand-gold underline underline-offset-4 hover:no-underline"
           >
             {siteConfig.phone.reservations}
           </a>
           .
         </p>
 
-        <span aria-hidden className="section-rule-gold bottom-10" />
       </div>
     </section>
   );
