@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { isAxiosError } from "axios";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
@@ -95,6 +95,68 @@ function describePaymentMethod(details: SimulatedPaymentDetails) {
         : `${PAYMENT_METHOD_LABELS[details.method]} (${card})`;
 }
 
+function BookingProgress({
+    currentStep,
+    stepTopRef,
+}: {
+    currentStep: 1 | 2 | 3;
+    stepTopRef: React.RefObject<HTMLElement>;
+}) {
+    const steps = [
+        { number: 1, label: "Guest details" },
+        { number: 2, label: "Payment details" },
+        { number: 3, label: "Confirmation" },
+    ] as const;
+
+    return (
+        <nav
+            ref={stepTopRef}
+            aria-label="Booking progress"
+            className="booking-progress mb-8 scroll-mt-4"
+        >
+            <ol className="flex items-start">
+                {steps.map(({ number: step, label }, index) => {
+                    const complete = step < currentStep;
+                    const current = step === currentStep;
+
+                    return (
+                        <li
+                            key={label}
+                            aria-current={current ? "step" : undefined}
+                            className="relative flex min-w-0 flex-1 flex-col items-center text-center"
+                        >
+                            {index < steps.length - 1 && (
+                                <span
+                                    aria-hidden="true"
+                                    className={`absolute left-1/2 top-4 h-px w-full ${
+                                        complete ? "bg-gold" : "bg-border"
+                                    }`}
+                                />
+                            )}
+                            <span
+                                className={`relative z-10 flex h-8 w-8 items-center justify-center rounded-full border text-xs font-semibold ${
+                                    current || complete
+                                        ? "border-navy bg-navy text-ivory dark:border-gold dark:bg-gold dark:text-navy-midnight"
+                                        : "border-border bg-background text-muted-foreground"
+                                }`}
+                            >
+                                {complete ? <Check className="h-4 w-4" aria-hidden="true" /> : step}
+                            </span>
+                            <span
+                                className={`mt-2 max-w-full whitespace-normal px-1 text-[0.6rem] font-medium leading-tight sm:text-xs ${
+                                    current ? "text-foreground" : "text-muted-foreground"
+                                }`}
+                            >
+                                {label}
+                            </span>
+                        </li>
+                    );
+                })}
+            </ol>
+        </nav>
+    );
+}
+
 interface BookingConfirmation {
     booking: BookingResponse;
     values: BookingFormValues;
@@ -143,6 +205,21 @@ export function BookingForm({ channel, onSuccess, compact, fixedRoom, initialSta
     const [roomsLoading, setRoomsLoading] = useState(channel === "ONLINE");
     const [roomsError, setRoomsError] = useState<string | null>(null);
     const session = useSession();
+    const stepTopRef = useRef<HTMLElement>(null);
+    const currentStep: 1 | 2 | 3 = confirmation ? 3 : checkout ? 2 : 1;
+    const previousStepRef = useRef(currentStep);
+
+    useEffect(() => {
+        if (previousStepRef.current === currentStep) return;
+        previousStepRef.current = currentStep;
+        stepTopRef.current
+            ?.closest<HTMLElement>('[role="dialog"]')
+            ?.scrollTo({ top: 0, behavior: "smooth" });
+    }, [currentStep]);
+
+    const progress = channel === "ONLINE"
+        ? <BookingProgress currentStep={currentStep} stepTopRef={stepTopRef} />
+        : null;
 
     const form = useForm<BookingFormValues>({
         resolver: zodResolver(bookingFormSchema),
@@ -155,7 +232,7 @@ export function BookingForm({ channel, onSuccess, compact, fixedRoom, initialSta
     });
 
     useEffect(() => {
-        if (!session) return;
+        if (session?.role !== "USER") return;
 
         if (session.firstName) {
             form.setValue("firstName", session.firstName);
@@ -272,10 +349,10 @@ export function BookingForm({ channel, onSuccess, compact, fixedRoom, initialSta
         setSubmittedBooking(booking);
         form.reset({
             ...bookingFormDefaultValues,
-            firstName: session?.firstName ?? "",
-            lastName: session?.lastName ?? "",
-            email: session?.email ?? "",
-            contactNumber: session?.mobile ?? "",
+            firstName: session?.role === "USER" ? session.firstName ?? "" : "",
+            lastName: session?.role === "USER" ? session.lastName ?? "" : "",
+            email: session?.role === "USER" ? session.email : "",
+            contactNumber: session?.role === "USER" ? session.mobile ?? "" : "",
             roomId: fixedRoom?.roomId ?? "",
         });
         onSuccess?.(booking, values);
@@ -401,10 +478,10 @@ export function BookingForm({ channel, onSuccess, compact, fixedRoom, initialSta
             setCheckout(null);
             form.reset({
                 ...bookingFormDefaultValues,
-                firstName: session?.firstName ?? "",
-                lastName: session?.lastName ?? "",
-                email: session?.email ?? "",
-                contactNumber: session?.mobile ?? "",
+                firstName: session?.role === "USER" ? session.firstName ?? "" : "",
+                lastName: session?.role === "USER" ? session.lastName ?? "" : "",
+                email: session?.role === "USER" ? session.email : "",
+                contactNumber: session?.role === "USER" ? session.mobile ?? "" : "",
                 roomId: fixedRoom?.roomId ?? "",
             });
             onSuccess?.(bookingRecord, progress.values);
@@ -450,7 +527,8 @@ export function BookingForm({ channel, onSuccess, compact, fixedRoom, initialSta
             confirmation;
 
         return (
-            <section aria-live="polite" className="space-y-6">
+            <section aria-live="polite" className="booking-receipt space-y-6">
+                {progress}
                 <div className="flex flex-col items-center gap-3 text-center">
                     <span className="flex h-16 w-16 items-center justify-center rounded-full bg-navy dark:bg-gold">
                         <Check className="h-8 w-8 text-gold dark:text-navy-midnight" aria-hidden="true" />
@@ -542,7 +620,7 @@ export function BookingForm({ channel, onSuccess, compact, fixedRoom, initialSta
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <div className="receipt-actions grid grid-cols-1 gap-3 sm:grid-cols-2">
                     <Button
                         type="button"
                         variant="navyOutline"
@@ -594,11 +672,14 @@ export function BookingForm({ channel, onSuccess, compact, fixedRoom, initialSta
 
         if (processingPayment && processingStep) {
             return (
-                <PaymentProcessing
-                    currentStep={processingStep}
-                    amountLabel={zar.format(total)}
-                    methodLabel={lastPaymentDetails ? describePaymentMethod(lastPaymentDetails) : ""}
-                />
+                <div>
+                    {progress}
+                    <PaymentProcessing
+                        currentStep={processingStep}
+                        amountLabel={zar.format(total)}
+                        methodLabel={lastPaymentDetails ? describePaymentMethod(lastPaymentDetails) : ""}
+                    />
+                </div>
             );
         }
 
@@ -608,109 +689,115 @@ export function BookingForm({ channel, onSuccess, compact, fixedRoom, initialSta
         const paymentIncomplete = Boolean(payment && payment.paymentStatus !== "SUCCESS");
 
         return (
-            <section className="space-y-6">
-                <div>
+            <section className="space-y-5">
+                {progress}
+                <div className="mb-1">
                     <h2 className="text-xl font-semibold">Review and pay</h2>
                     <p className="mt-1 text-sm text-muted-foreground">
                         Check your stay details, then choose how you&apos;d like to pay.
                     </p>
                 </div>
 
-                <div className="space-y-4 border bg-card p-5">
-                    <div>
-                        <h3 className="font-semibold">Guest</h3>
-                        <p className="text-sm text-muted-foreground">
-                            {values.firstName} {values.lastName}
-                        </p>
-                        <p className="text-sm text-muted-foreground">{values.email}</p>
+                <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]">
+                    <div className="space-y-4">
+                        {(booking || invoice || payment) && (
+                            <p className="text-xs text-muted-foreground">
+                                {booking && `Booking #${booking.bookingId} created. `}
+                                {invoice && `Invoice ${invoice.reference} created. `}
+                                {paymentIncomplete &&
+                                    `Last payment status: ${payment?.paymentStatus}. Please contact the hotel to complete checkout.`}
+                            </p>
+                        )}
+                        {channel === "ONLINE" && session?.role !== "USER" && (
+                            <p role="alert" className="text-sm text-destructive">
+                                Please <Link className="underline" href="/login">sign in</Link> with a
+                                guest account before making a booking.
+                            </p>
+                        )}
+                        {checkoutError && (
+                            <p role="alert" className="text-sm text-destructive">
+                                Checkout error: {checkoutError}
+                            </p>
+                        )}
+
+                        {payment && lastPaymentDetails ? (
+                            // Payment already recorded - only the invoice check is left.
+                            <Button
+                                type="button"
+                                className="w-full"
+                                onClick={() => completePayment(lastPaymentDetails)}
+                                disabled={processingPayment || paymentIncomplete}
+                            >
+                                {paymentIncomplete ? "Payment needs assistance" : "Verify invoice payment"}
+                            </Button>
+                        ) : (
+                            <PaymentMethodStep
+                                total={total}
+                                email={values.email}
+                                stayLabel={stayLabel}
+                                disabled={!room || nights <= 0 || processingPayment}
+                                onPay={completePayment}
+                            />
+                        )}
+
+                        {!booking && !invoice && !payment && (
+                            <Button
+                                type="button"
+                                variant="outline"
+                                className="w-full"
+                                disabled={processingPayment}
+                                onClick={() => {
+                                    setCheckout(null);
+                                    setCheckoutError(null);
+                                }}
+                            >
+                                Back to booking
+                            </Button>
+                        )}
                     </div>
 
-                    <div className="border-t pt-4">
-                        <h3 className="font-semibold">Your stay</h3>
-                        <p className="text-sm text-muted-foreground">
-                            {backendRoomLabel(room)} · {nights} {nights === 1 ? "night" : "nights"}
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                            {formatStayDate(values.checkInDate)} –{" "}
-                            {formatStayDate(values.checkOutDate)}
-                        </p>
-                        <div className="mt-4 flex justify-between gap-4 border-t pt-4 text-sm">
-                            <span>
-                                Room rate ({zar.format(room.pricePerNight)} × {nights}{" "}
-                                {nights === 1 ? "night" : "nights"})
-                            </span>
-                            <span>{zar.format(total)}</span>
+                    <div className="space-y-4 border bg-card p-4 sm:p-5">
+                        <div>
+                            <h3 className="font-semibold">Guest</h3>
+                            <p className="text-sm text-muted-foreground">
+                                {values.firstName} {values.lastName}
+                            </p>
+                            <p className="break-all text-sm text-muted-foreground">{values.email}</p>
                         </div>
-                        <div className="mt-2 flex justify-between gap-4 text-lg font-semibold">
-                            <span>Total due</span>
-                            <span>{zar.format(total)}</span>
+
+                        <div className="border-t pt-4">
+                            <h3 className="font-semibold">Your stay</h3>
+                            <p className="text-sm text-muted-foreground">
+                                {backendRoomLabel(room)} · {nights} {nights === 1 ? "night" : "nights"}
+                            </p>
+                            <p className="text-sm text-muted-foreground">
+                                {formatStayDate(values.checkInDate)} –{" "}
+                                {formatStayDate(values.checkOutDate)}
+                            </p>
+                            <div className="mt-4 flex justify-between gap-4 border-t pt-4 text-sm">
+                                <span>
+                                    Room rate ({zar.format(room.pricePerNight)} × {nights}{" "}
+                                    {nights === 1 ? "night" : "nights"})
+                                </span>
+                                <span className="shrink-0">{zar.format(total)}</span>
+                            </div>
+                            <div className="mt-2 flex justify-between gap-4 text-lg font-semibold">
+                                <span>Total due</span>
+                                <span className="shrink-0">{zar.format(total)}</span>
+                            </div>
+                            <p className="mt-2 text-xs text-muted-foreground">
+                                Free cancellation up to 48 hours before check-in.
+                            </p>
                         </div>
-                        <p className="mt-2 text-xs text-muted-foreground">
-                            Free cancellation up to 48 hours before check-in.
-                        </p>
                     </div>
                 </div>
-
-                {(booking || invoice || payment) && (
-                    <p className="text-xs text-muted-foreground">
-                        {booking && `Booking #${booking.bookingId} created. `}
-                        {invoice && `Invoice ${invoice.reference} created. `}
-                        {paymentIncomplete &&
-                            `Last payment status: ${payment?.paymentStatus}. Please contact the hotel to complete checkout.`}
-                    </p>
-                )}
-                {channel === "ONLINE" && session?.role !== "USER" && (
-                    <p role="alert" className="text-sm text-destructive">
-                        Please <Link className="underline" href="/login">sign in</Link> with a
-                        guest account before making a booking.
-                    </p>
-                )}
-                {checkoutError && (
-                    <p role="alert" className="text-sm text-destructive">
-                        Checkout error: {checkoutError}
-                    </p>
-                )}
-
-                {payment && lastPaymentDetails ? (
-                    // Payment already recorded - only the invoice check is left.
-                    <Button
-                        type="button"
-                        className="w-full"
-                        onClick={() => completePayment(lastPaymentDetails)}
-                        disabled={processingPayment || paymentIncomplete}
-                    >
-                        {paymentIncomplete ? "Payment needs assistance" : "Verify invoice payment"}
-                    </Button>
-                ) : (
-                    <PaymentMethodStep
-                        total={total}
-                        email={values.email}
-                        stayLabel={stayLabel}
-                        disabled={!room || nights <= 0 || processingPayment}
-                        onPay={completePayment}
-                    />
-                )}
-
-                {!booking && !invoice && !payment && (
-                    <Button
-                        type="button"
-                        variant="outline"
-                        className="w-full"
-                        disabled={processingPayment}
-                        onClick={() => {
-                            setCheckout(null);
-                            setCheckoutError(null);
-                        }}
-                    >
-                        Back to booking
-                    </Button>
-                )}
             </section>
         );
     }
 
     return (
         <Form {...form}>
+            {progress}
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                 <div className="space-y-4">
                     {!compact && <h3 className="font-semibold text-lg">Guest details</h3>}
@@ -918,7 +1005,7 @@ export function BookingForm({ channel, onSuccess, compact, fixedRoom, initialSta
                             Boolean(fixedRoom && fixedRoomUnavailable))
                     }
                 >
-                    {channel === "ONLINE" ? "Review booking" : "Confirm booking"}
+                    {channel === "ONLINE" ? "Continue to payment" : "Confirm booking"}
                 </Button>
             </form>
         </Form>

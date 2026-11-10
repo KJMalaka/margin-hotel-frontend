@@ -137,62 +137,64 @@ export default function AppSidebar() {
         ))}
       </SidebarContent>
       <SidebarFooter className='group-data-[collapsible=icon]:px-2 group-data-[collapsible=icon]:py-4'>
-        <SidebarMenu>
-          {session && (
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                tooltip={`${displayName || session.email} · ${session.role}`}
-                className='h-auto min-h-12 cursor-default py-2'
-                aria-label={`Logged in as ${displayName || session.email}, ${session.role}`}
-              >
-                <UserRound />
-                <span className='flex min-w-0 flex-col items-start gap-0.5'>
-                  <span className='max-w-full truncate font-medium'>
-                    {displayName || session.email}
-                  </span>
-                  <span className='text-xs text-muted-foreground'>
-                    {session.role === 'ADMIN' ? 'Administrator' : 'Receptionist'}
-                  </span>
-                  {nameLoadError && (
-                    <span className='text-xs text-destructive'>
-                      Name unavailable
-                    </span>
-                  )}
-                </span>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          )}
-          <Dialog open={logoutDialogOpen} onOpenChange={setLogoutDialogOpen}>
-            <SidebarMenuItem>
-              <DialogTrigger asChild>
-                <SidebarMenuButton tooltip='Log out'>
-                  <LogOut />
-                  <span>Log out</span>
-                </SidebarMenuButton>
-              </DialogTrigger>
-            </SidebarMenuItem>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Log out?</DialogTitle>
-                <DialogDescription>
-                  Are you sure you want to log out of Margin Hotel Admin?
-                </DialogDescription>
-              </DialogHeader>
-              <DialogFooter>
-                <Button
-                  variant='outline'
-                  onClick={() => setLogoutDialogOpen(false)}
+        <div className='rounded-lg border border-navy/20 bg-white/75 p-2 shadow-sm dark:border-white/25 dark:bg-white/[0.08] group-data-[collapsible=icon]:border-0 group-data-[collapsible=icon]:bg-transparent group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:shadow-none'>
+          <ToggleTheme className='justify-end group-data-[collapsible=icon]:justify-center' />
+          <SidebarMenu>
+            {session && (
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  tooltip={`${displayName || session.email} · ${session.role}`}
+                  className='h-auto min-h-12 cursor-default py-2'
+                  aria-label={`Logged in as ${displayName || session.email}, ${session.role}`}
                 >
-                  Cancel
-                </Button>
-                <Button variant='destructive' onClick={handleLogout}>
-                  Log out
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-        </SidebarMenu>
-        <ToggleTheme />
+                  <UserRound />
+                  <span className='flex min-w-0 flex-col items-start gap-0.5'>
+                    <span className='max-w-full truncate font-medium'>
+                      {displayName || session.email}
+                    </span>
+                    <span className='text-xs text-muted-foreground'>
+                      {session.role === 'ADMIN' ? 'Administrator' : 'Receptionist'}
+                    </span>
+                    {nameLoadError && (
+                      <span className='text-xs text-destructive'>
+                        Name unavailable
+                      </span>
+                    )}
+                  </span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            )}
+            <Dialog open={logoutDialogOpen} onOpenChange={setLogoutDialogOpen}>
+              <SidebarMenuItem>
+                <DialogTrigger asChild>
+                  <SidebarMenuButton tooltip='Log out'>
+                    <LogOut className='text-destructive' />
+                    <span>Log out</span>
+                  </SidebarMenuButton>
+                </DialogTrigger>
+              </SidebarMenuItem>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Log out?</DialogTitle>
+                  <DialogDescription>
+                    Are you sure you want to log out of Margin Hotel Admin?
+                  </DialogDescription>
+                </DialogHeader>
+                <DialogFooter>
+                  <Button
+                    variant='outline'
+                    onClick={() => setLogoutDialogOpen(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button variant='destructive' onClick={handleLogout}>
+                    Log out
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          </SidebarMenu>
+        </div>
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>
