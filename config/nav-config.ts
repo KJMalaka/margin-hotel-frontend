@@ -24,6 +24,7 @@ export const navGroups: NavGroup[] = [
       { title: 'Bookings', url: '/admin/bookings', icon: 'bookings' },
       { title: 'Payments', url: '/admin/payments', icon: 'payments' },
       { title: 'Invoices', url: '/admin/invoices', icon: 'invoices' },
+      { title: 'Guests', url: '/admin/guests', icon: 'guests' },
     ],
   },
   {
