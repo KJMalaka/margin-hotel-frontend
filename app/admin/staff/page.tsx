@@ -4,7 +4,10 @@ import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Pencil, Trash2 } from 'lucide-react';
+import { CircleAlert, Pencil, Plus, Trash2 } from 'lucide-react';
+import { Alert } from '@/components/ui/alert';
+import { ErrorState, LoadingState } from '@/components/ui/state';
+import { PageHeader } from '@/components/admin/page-header';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -68,10 +71,18 @@ function Field({
   children: React.ReactNode;
 }) {
   return (
-    <div className="space-y-1.5">
+    <div className="space-y-2">
       <Label htmlFor={htmlFor}>{label}</Label>
       {children}
-      {error && <p className="text-xs text-red-600">{error}</p>}
+      {error && (
+        <p id={`${htmlFor}-error`} className="flex items-start gap-1.5 font-bold text-danger">
+          <CircleAlert aria-hidden className="mt-0.5 size-5 shrink-0" />
+          <span>
+            <span className="sr-only">Error: </span>
+            {error}
+          </span>
+        </p>
+      )}
     </div>
   );
 }
@@ -92,7 +103,7 @@ function StaffTable({
   onDelete: (row: StaffRow) => void;
 }) {
   return (
-    <Table>
+    <Table label={`${extraLabel === 'Office' ? 'Managers' : 'Receptionists'}`}>
       <TableHeader>
         <TableRow>
           <TableHead>Staff ID</TableHead>
@@ -106,38 +117,36 @@ function StaffTable({
       <TableBody>
         {rows.length === 0 ? (
           <TableRow>
-            <TableCell colSpan={6} className="text-muted-foreground">
+            <TableCell colSpan={6} className="py-8 text-center text-muted-foreground">
               {emptyText}
             </TableCell>
           </TableRow>
         ) : (
           rows.map((row) => (
             <TableRow key={row.staffId}>
-              <TableCell>{row.staffId}</TableCell>
-              <TableCell>
+              <TableCell data-label="Staff ID" className="tabular-nums">{row.staffId}</TableCell>
+              <TableCell data-label="Name" className="font-bold">
                 {row.firstName} {row.lastName}
               </TableCell>
-              <TableCell>{row.email}</TableCell>
-              <TableCell>{row.mobile}</TableCell>
-              <TableCell>{row.extra}</TableCell>
-              <TableCell>
-                <div className="flex justify-end gap-1">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    aria-label={`Edit ${row.firstName} ${row.lastName}`}
-                    onClick={() => onEdit(row)}
-                  >
-                    <Pencil className="h-4 w-4" />
+              <TableCell data-label="Email" className="break-all">{row.email}</TableCell>
+              <TableCell data-label="Mobile" className="whitespace-nowrap tabular-nums">{row.mobile}</TableCell>
+              <TableCell data-label={extraLabel}>{row.extra}</TableCell>
+              <TableCell data-label="Actions">
+                <div className="flex flex-wrap justify-start gap-2 sm:justify-end">
+                  <Button variant="secondary" size="sm" onClick={() => onEdit(row)}>
+                    <Pencil aria-hidden />
+                    Edit
+                    <span className="sr-only">{row.firstName} {row.lastName}</span>
                   </Button>
                   <Button
-                    variant="ghost"
-                    size="icon"
-                    aria-label={`Delete ${row.firstName} ${row.lastName}`}
+                    variant="destructive"
+                    size="sm"
                     disabled={deletingId === row.staffId}
                     onClick={() => onDelete(row)}
                   >
-                    <Trash2 className="h-4 w-4 text-red-600" />
+                    <Trash2 aria-hidden />
+                    {deletingId === row.staffId ? 'Deleting…' : 'Delete'}
+                    <span className="sr-only">{row.firstName} {row.lastName}</span>
                   </Button>
                 </div>
               </TableCell>
@@ -280,8 +289,30 @@ export default function StaffPage() {
     }
   }
 
-  if (loading) return <p className="text-sm text-muted-foreground">Loading staff...</p>;
-  if (error) return <p className="text-red-600">{error}</p>;
+  const header = (
+    <PageHeader
+      title="Staff"
+      description="Managers and receptionists who work at the hotel."
+      className="mb-0"
+    />
+  );
+
+  if (loading || error) {
+    return (
+      <div className="space-y-8">
+        {header}
+        {loading ? (
+          <LoadingState label="Loading staff…" />
+        ) : (
+          <ErrorState
+            title="Staff could not be loaded"
+            message={error ?? ""}
+            onRetry={() => loadStaff()}
+          />
+        )}
+      </div>
+    );
+  }
 
   const managerRows: StaffRow[] = managers.map((m) => ({ ...m, extra: m.officeNumber }));
   const receptionistRows: StaffRow[] = receptionists.map((r) => ({ ...r, extra: r.deskNumber }));
@@ -291,19 +322,17 @@ export default function StaffPage() {
 
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-2xl font-semibold">Staff</h1>
-        <p className="text-sm text-muted-foreground">
-          Managers and receptionists who work at the hotel.
-        </p>
-      </div>
+      {header}
 
-      {deleteError && <p className="text-sm text-red-600">{deleteError}</p>}
+      {deleteError && <Alert variant="danger">{deleteError}</Alert>}
 
-      <section className="space-y-3">
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold">Managers</h2>
-          <Button onClick={() => openCreateForm('manager')}>Add manager</Button>
+      <section aria-labelledby="managers-title" className="space-y-3">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2 id="managers-title" className="text-2xl">Managers</h2>
+          <Button onClick={() => openCreateForm('manager')}>
+            <Plus aria-hidden />
+            Add manager
+          </Button>
         </div>
         <StaffTable
           rows={managerRows}
@@ -315,10 +344,13 @@ export default function StaffPage() {
         />
       </section>
 
-      <section className="space-y-3">
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold">Receptionists</h2>
-          <Button onClick={() => openCreateForm('receptionist')}>Add receptionist</Button>
+      <section aria-labelledby="receptionists-title" className="space-y-3">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2 id="receptionists-title" className="text-2xl">Receptionists</h2>
+          <Button onClick={() => openCreateForm('receptionist')}>
+            <Plus aria-hidden />
+            Add receptionist
+          </Button>
         </div>
         <StaffTable
           rows={receptionistRows}
@@ -348,22 +380,22 @@ export default function StaffPage() {
             </DialogDescription>
           </DialogHeader>
 
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+          <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-5">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <Field htmlFor="firstName" label="First name" error={errors.firstName?.message}>
-                <Input id="firstName" {...register('firstName')} />
+                <Input id="firstName" autoComplete="given-name" aria-invalid={!!errors.firstName} aria-describedby={errors.firstName ? "firstName-error" : undefined} {...register('firstName')} />
               </Field>
               <Field htmlFor="lastName" label="Last name" error={errors.lastName?.message}>
-                <Input id="lastName" {...register('lastName')} />
+                <Input id="lastName" autoComplete="family-name" aria-invalid={!!errors.lastName} aria-describedby={errors.lastName ? "lastName-error" : undefined} {...register('lastName')} />
               </Field>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <Field htmlFor="email" label="Email" error={errors.email?.message}>
-                <Input id="email" type="email" {...register('email')} />
+                <Input id="email" type="email" autoComplete="email" aria-invalid={!!errors.email} aria-describedby={errors.email ? "email-error" : undefined} {...register('email')} />
               </Field>
               <Field htmlFor="mobile" label="Mobile number" error={errors.mobile?.message}>
-                <Input id="mobile" type="tel" {...register('mobile')} />
+                <Input id="mobile" type="tel" autoComplete="tel" aria-invalid={!!errors.mobile} aria-describedby={errors.mobile ? "mobile-error" : undefined} {...register('mobile')} />
               </Field>
             </div>
 
@@ -374,14 +406,15 @@ export default function StaffPage() {
             >
               <Input
                 id="deskOrOffice"
+                aria-invalid={!!errors.deskOrOffice} aria-describedby={errors.deskOrOffice ? "deskOrOffice-error" : undefined}
                 placeholder={isManagerForm ? 'e.g. OFF-101' : 'e.g. DESK-01'}
                 {...register('deskOrOffice')}
               />
             </Field>
 
-            {submitError && <p className="text-sm text-red-600">{submitError}</p>}
+            {submitError && <Alert variant="danger">{submitError}</Alert>}
 
-            <Button type="submit" disabled={submitting} className="w-full">
+            <Button type="submit" size="lg" disabled={submitting} className="w-full">
               {submitting ? 'Saving...' : isEditing ? 'Save changes' : 'Save'}
             </Button>
           </form>

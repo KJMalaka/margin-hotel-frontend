@@ -18,7 +18,9 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
+import { StatusBadge } from '@/components/ui/status-badge';
+import { EmptyState, ErrorState, LoadingState } from '@/components/ui/state';
+import { PageHeader } from '@/components/admin/page-header';
 import { Button } from '@/components/ui/button';
 import { formatAdminDate } from '@/lib/date-format';
 import { AddInvoiceDialog } from '@/components/invoice/add-invoice-dialog';
@@ -81,26 +83,27 @@ export default function InvoicesPage() {
   }
 
   return (
-    <div className="flex flex-col gap-6 p-6">
-      <div className="flex items-start justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold">Invoices</h1>
-          <p className="text-sm text-muted-foreground">
-            All invoices, filterable by status and issue date.
-          </p>
-        </div>
-        <AddInvoiceDialog onInvoiceCreated={() => fetchInvoices()} />
-      </div>
+    <div className="flex flex-col gap-6">
+      <PageHeader
+        title="Invoices"
+        description="All invoices, filterable by status and issue date."
+        actions={<AddInvoiceDialog onInvoiceCreated={() => fetchInvoices()} />}
+        className="mb-0"
+      />
 
       {/* Filters */}
-      <div className="flex flex-wrap items-end gap-4">
+      <div
+        role="group"
+        aria-label="Filter invoices"
+        className="grid grid-cols-1 gap-4 rounded-lg border border-border bg-card p-4 sm:grid-cols-2 lg:flex lg:flex-wrap lg:items-end"
+      >
         <div className="flex flex-col gap-1.5">
-          <label className="text-sm font-medium">Status</label>
+          <label htmlFor="invoice-status" className="text-base font-bold">Status</label>
           <Select
             value={statusFilter}
             onValueChange={(value) => setStatusFilter(value as InvoiceStatus)}
           >
-            <SelectTrigger className="w-[160px]">
+            <SelectTrigger id="invoice-status" className="lg:w-44">
               <SelectValue placeholder="All statuses" />
             </SelectTrigger>
             <SelectContent>
@@ -111,19 +114,20 @@ export default function InvoicesPage() {
         </div>
 
         <div className="flex flex-col gap-1.5">
-          <label className="text-sm font-medium">Issue date</label>
+          <label htmlFor="invoice-date" className="text-base font-bold">Issue date</label>
           <Input
+            id="invoice-date"
             type="date"
             value={dateFilter}
             onChange={(e) => setDateFilter(e.target.value)}
-            className="w-[160px]"
+            className="lg:w-44"
           />
         </div>
 
         {(statusFilter || dateFilter) && (
           <Button
-            variant="ghost"
-            size="sm"
+            variant="secondary"
+            className="sm:justify-self-start"
             onClick={() => {
               setStatusFilter('');
               setDateFilter('');
@@ -135,11 +139,24 @@ export default function InvoicesPage() {
       </div>
 
       {/* States */}
-      {loading && <p className="text-sm text-muted-foreground">Loading invoices...</p>}
-      {error && <p className="text-sm text-destructive">Error: {error}</p>}
+      {loading && <LoadingState label="Loading invoices…" />}
+      {error && (
+        <ErrorState
+          title="Invoices could not be loaded"
+          message={error}
+          onRetry={() => fetchInvoices()}
+        />
+      )}
 
-      {!loading && !error && (
-        <Table>
+      {!loading && !error && invoices.length === 0 && (
+        <EmptyState
+          title="No invoices found"
+          description="Try clearing the filters, or use Add invoice to create one."
+        />
+      )}
+
+      {!loading && !error && invoices.length > 0 && (
+        <Table label="Invoices">
           <TableHeader>
             <TableRow>
               <TableHead>Reference</TableHead>
@@ -151,28 +168,19 @@ export default function InvoicesPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {invoices.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
-                  No invoices found.
-                </TableCell>
-              </TableRow>
-            ) : (
-              invoices.map((invoice) => (
+            {invoices.map((invoice) => (
                 <TableRow key={invoice.invoiceId}>
-                  <TableCell>{invoice.reference}</TableCell>
-                  <TableCell>{invoice.bookingId}</TableCell>
-                  <TableCell>
-                    <Badge variant={invoice.status === 'PAID' ? 'default' : 'secondary'}>
-                      {invoice.status}
-                    </Badge>
+                  <TableCell data-label="Reference" className="font-bold">{invoice.reference}</TableCell>
+                  <TableCell data-label="Booking ID" className="tabular-nums">{invoice.bookingId}</TableCell>
+                  <TableCell data-label="Status">
+                    <StatusBadge status={invoice.status} />
                   </TableCell>
-                  <TableCell>{formatAdminDate(invoice.issueDate)}</TableCell>
-                  <TableCell className="text-right">
+                  <TableCell data-label="Issue date" className="whitespace-nowrap">{formatAdminDate(invoice.issueDate)}</TableCell>
+                  <TableCell data-label="Amount" className="text-right font-bold tabular-nums">
                     R{invoice.totalAmount.toFixed(2)}
                   </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end gap-1">
+                  <TableCell data-label="Actions" className="text-right">
+                    <div className="flex flex-wrap justify-start gap-2 sm:justify-end">
                       <EditInvoiceDialog
                         invoice={invoice}
                         onInvoiceUpdated={(updated) =>
@@ -184,19 +192,19 @@ export default function InvoicesPage() {
                         }
                       />
                       <Button
-                        variant="ghost"
-                        size="icon"
-                        aria-label={`Delete invoice ${invoice.reference}`}
+                        variant="destructive"
+                        size="sm"
                         onClick={() => handleDelete(invoice)}
                         disabled={deletingId === invoice.invoiceId}
                       >
-                        <Trash2 className="h-4 w-4 text-destructive" />
+                        <Trash2 aria-hidden />
+                        {deletingId === invoice.invoiceId ? "Deleting…" : "Delete"}
+                        <span className="sr-only">invoice {invoice.reference}</span>
                       </Button>
                     </div>
                   </TableCell>
                 </TableRow>
-              ))
-            )}
+              ))}
           </TableBody>
         </Table>
       )}

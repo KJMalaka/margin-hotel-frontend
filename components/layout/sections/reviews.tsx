@@ -21,33 +21,33 @@ export const ReviewsSection = () => {
   if (reviews.length === 0 && !reviewsUrl) return null;
 
   return (
-    <Section id="reviews" tone="white" rules="top">
+    <Section id="reviews" tone="white" divider>
       <div className="container">
         <SectionHeading
           align="center"
-          eyebrow="Guest Reviews"
+          eyebrow="Guest reviews"
           title="What our guests say"
           description="Real words from guests who have stayed with us."
-          className="mb-16"
+          className="mb-10"
         />
 
         {reviews.length > 0 && (
-          <ul className="mb-12 grid gap-px border border-border bg-border md:grid-cols-2 lg:grid-cols-3">
+          <ul className="mb-10 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {reviews.map(({ name, source, rating, quote }) => (
-              <li key={`${name}-${quote}`} className="flex flex-col bg-card p-8">
+              <li key={`${name}-${quote}`} className="flex flex-col rounded-lg border border-border bg-card p-6 shadow-sm">
                 <div className="flex gap-0.5" role="img" aria-label={`${rating} out of 5 stars`}>
                   {Array.from({ length: 5 }).map((_, i) => (
                     <Star
                       key={i}
-                      strokeWidth={1.25}
-                      className={i < rating ? "size-4 fill-gold text-gold-deep" : "size-4 text-border"}
+                      aria-hidden
+                      className={i < rating ? "size-5 fill-bronze text-bronze" : "size-5 text-input"}
                     />
                   ))}
                 </div>
-                <blockquote className="display-title mt-6 flex-1 text-2xl text-navy dark:text-ivory">
+                <blockquote className="mt-4 flex-1 text-lg">
                   &ldquo;{quote}&rdquo;
                 </blockquote>
-                <p className="mt-6 font-heading text-[0.65rem] font-medium uppercase tracking-brand text-muted-foreground">
+                <p className="mt-4 font-bold text-muted-foreground">
                   {name} · via {source}
                 </p>
               </li>
@@ -57,10 +57,11 @@ export const ReviewsSection = () => {
 
         {reviewsUrl && (
           <div className="flex justify-center">
-            <Button asChild variant="navyOutline" size="brand">
+            <Button asChild variant="secondary">
               <a href={reviewsUrl} target="_blank" rel="noopener noreferrer">
                 Read all reviews
-                <ExternalLink className="ml-2 size-3.5" />
+                <ExternalLink aria-hidden />
+                <span className="sr-only">(opens in a new tab)</span>
               </a>
             </Button>
           </div>

@@ -35,16 +35,16 @@ export default function BookPage({ searchParams }: BookPageProps) {
     return (
         <>
             <Navbar />
-            <main className="container max-w-3xl py-20 sm:py-28">
+            <main id="main" className="container max-w-3xl section-y">
                 <SectionHeading
                     as="h1"
                     eyebrow="Reservations"
                     title="Book your stay"
                     description="Enter your details, review your stay, and complete your reservation."
-                    className="mb-12"
+                    className="mb-8"
                 />
 
-                <div className="border border-border bg-card p-6 sm:p-10">
+                <div className="rounded-lg border border-border bg-card p-5 shadow-sm sm:p-8">
                     <GuestBookingForm initialStay={initialStay} />
                 </div>
             </main>

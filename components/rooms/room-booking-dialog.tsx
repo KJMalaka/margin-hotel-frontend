@@ -23,10 +23,10 @@ export const RoomBookingDialog = ({ room }: RoomBookingDialogProps) => {
   if (room.status !== "AVAILABLE") {
     return (
       <div>
-        <Button disabled className="font-bold">
-          Book Room
+        <Button disabled size="lg" aria-describedby="room-unavailable">
+          Book this room
         </Button>
-        <p className="text-sm text-muted-foreground mt-2">
+        <p id="room-unavailable" className="mt-2 text-muted-foreground">
           This room is currently unavailable. Please check back later or
           browse our other rooms.
         </p>
@@ -37,13 +37,13 @@ export const RoomBookingDialog = ({ room }: RoomBookingDialogProps) => {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button className="font-bold">Book Room</Button>
+        <Button size="lg" className="w-full sm:w-auto">Book this room</Button>
       </DialogTrigger>
 
-      <DialogContent className="max-w-md max-h-[85vh] overflow-y-auto">
+      <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle>
-            Reserve Room {room.roomNumber} · {ROOM_TYPE_LABELS[room.type]}
+            Reserve room {room.roomNumber} · {ROOM_TYPE_LABELS[room.type]}
           </DialogTitle>
         </DialogHeader>
 

@@ -9,6 +9,8 @@ import { isAxiosError } from "axios";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Alert } from "@/components/ui/alert";
+import { AuthShell } from "@/components/auth/auth-shell";
 import {
   Form,
   FormControl,
@@ -57,20 +59,14 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center p-6">
-      <div className="w-full max-w-sm space-y-6">
-        <div>
-          <h1 className="text-2xl font-semibold">Sign in</h1>
-          <p className="text-sm text-muted-foreground">
-            Sign in to your Margin Hotel account.
-          </p>
-        </div>
+    <AuthShell title="Sign in" description="Sign in to your Margin Hotel account.">
 
         <Form {...form}>
           <form
             method="post"
+            noValidate
             onSubmit={form.handleSubmit(onSubmit)}
-            className="space-y-4"
+            className="space-y-5"
           >
             <FormField
               control={form.control}
@@ -100,20 +96,19 @@ export default function LoginPage() {
               )}
             />
 
-            {error && <p className="text-sm text-destructive">{error}</p>}
+            {error && <Alert variant="danger">{error}</Alert>}
 
-            <Button type="submit" className="w-full" disabled={submitting}>
+            <Button type="submit" size="lg" className="w-full" disabled={submitting}>
               {submitting ? "Signing in..." : "Sign in"}
             </Button>
           </form>
-          <p className="text-sm text-muted-foreground">
+          <p className="mt-4 text-center text-muted-foreground">
             Don&apos;t have an account?{" "}
-            <Link href="/signup" className="text-primary hover:underline">
+            <Link href="/signup" className="inline-flex min-h-tap items-center font-bold text-primary underline underline-offset-4 hover:no-underline">
               Sign up
             </Link>
           </p>
         </Form>
-      </div>
-    </div>
+    </AuthShell>
   );
 }

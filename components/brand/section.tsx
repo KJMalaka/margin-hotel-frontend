@@ -4,60 +4,48 @@ type SectionTone = "light" | "white" | "navy";
 
 interface SectionProps extends React.HTMLAttributes<HTMLElement> {
   tone?: SectionTone;
-  /**
-   * Thin full-width rules - the brand's signature detail. Use "top" when the
-   * section follows one that already draws a bottom rule.
-   */
-  rules?: "both" | "top" | "bottom" | "none";
+  /** Top border line - use when two sections of the same tone meet. */
+  divider?: boolean;
 }
 
 const toneClasses: Record<SectionTone, string> = {
   light: "bg-background text-foreground",
   white: "bg-card text-foreground",
-  navy: "bg-navy text-ivory",
+  // .surface-brand swaps text, border and focus-ring tokens for navy.
+  navy: "surface-brand",
 };
 
-/**
- * Page section with the brand hairlines: gold rules on navy, navy rules on
- * light backgrounds.
- */
+/** Page section with consistent vertical rhythm (see --space-section). */
 export const Section = ({
   tone = "light",
-  rules = "both",
+  divider = false,
   className,
   children,
   ...props
-}: SectionProps) => {
-  const rule = tone === "navy" ? "section-rule-gold" : "section-rule";
-  return (
-    <section
-      className={cn("relative scroll-mt-24 py-24 md:py-32", toneClasses[tone], className)}
-      {...props}
-    >
-      {(rules === "both" || rules === "top") && (
-        <span aria-hidden className={cn(rule, "top-8 md:top-10")} />
-      )}
-      {children}
-      {(rules === "both" || rules === "bottom") && (
-        <span aria-hidden className={cn(rule, "bottom-8 md:bottom-10")} />
-      )}
-    </section>
-  );
-};
+}: SectionProps) => (
+  <section
+    className={cn(
+      "section-y relative",
+      toneClasses[tone],
+      divider && "border-t border-border",
+      className
+    )}
+    {...props}
+  >
+    {children}
+  </section>
+);
 
-/** Accent before eyebrow labels: a defined 1.5px line ending in a small dot. */
+/** Short accent line before eyebrow labels. */
 export const EyebrowMark = () => (
-  <span aria-hidden className="flex shrink-0 items-center gap-1">
-    <span className="h-[1.5px] w-9 bg-current" />
-    <span className="size-[5px] rounded-full bg-current" />
-  </span>
+  <span aria-hidden className="h-0.5 w-8 shrink-0 rounded-full bg-current" />
 );
 
 interface SectionHeadingProps {
   eyebrow: string;
   title: React.ReactNode;
   description?: React.ReactNode;
-  /** "navy" when the heading sits on a navy panel. */
+  /** "navy" when the heading sits on a navy surface. */
   tone?: "light" | "navy";
   align?: "left" | "center";
   className?: string;
@@ -82,9 +70,9 @@ export const SectionHeading = ({
   >
     <p
       className={cn(
-        "eyebrow mb-5 flex items-center gap-4",
+        "eyebrow mb-3 flex items-center gap-3",
         align === "center" && "justify-center",
-        tone === "navy" ? "text-gold" : "text-ocean dark:text-gold"
+        tone === "navy" && "text-brand-gold"
       )}
     >
       <EyebrowMark />
@@ -92,8 +80,8 @@ export const SectionHeading = ({
     </p>
     <Title
       className={cn(
-        "display-title text-5xl md:text-6xl",
-        tone === "navy" ? "text-gold" : "text-navy dark:text-ivory"
+        "display-title",
+        tone === "navy" && "text-brand-foreground"
       )}
     >
       {title}
@@ -101,8 +89,9 @@ export const SectionHeading = ({
     {description && (
       <p
         className={cn(
-          "mt-6 text-lg",
-          tone === "navy" ? "text-gold-light" : "text-muted-foreground"
+          "measure mt-4 text-lg",
+          align === "center" && "mx-auto",
+          tone === "navy" ? "text-brand-foreground/90" : "text-muted-foreground"
         )}
       >
         {description}

@@ -3,18 +3,20 @@ import { cva, type VariantProps } from "class-variance-authority";
 
 import { cn } from "@/lib/utils";
 
+/* Badges always carry a word (and usually an icon). Colour is a second cue,
+   never the only one - see StatusBadge for booking/payment statuses. */
 const badgeVariants = cva(
-  "inline-flex items-center rounded-full border border-secondary px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
+  "inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border px-2.5 py-1 text-xs font-bold [&_svg]:size-4 [&_svg]:shrink-0",
   {
     variants: {
       variant: {
-        default:
-          "border-transparent bg-primary text-primary-foreground hover:bg-primary/80",
-        secondary:
-          "border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80",
-        destructive:
-          "border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80",
-        outline: "text-foreground",
+        default: "border-primary/30 bg-info-bg text-info",
+        secondary: "border-border bg-muted text-foreground",
+        outline: "border-input text-foreground",
+        success: "border-success/30 bg-success-bg text-success",
+        warning: "border-warning/30 bg-warning-bg text-warning",
+        destructive: "border-danger/30 bg-danger-bg text-danger",
+        info: "border-info/30 bg-info-bg text-info",
       },
     },
     defaultVariants: {
@@ -24,12 +26,12 @@ const badgeVariants = cva(
 );
 
 export interface BadgeProps
-  extends React.HTMLAttributes<HTMLDivElement>,
+  extends React.HTMLAttributes<HTMLSpanElement>,
     VariantProps<typeof badgeVariants> {}
 
 function Badge({ className, variant, ...props }: BadgeProps) {
   return (
-    <div className={cn(badgeVariants({ variant }), className)} {...props} />
+    <span className={cn(badgeVariants({ variant }), className)} {...props} />
   );
 }
 

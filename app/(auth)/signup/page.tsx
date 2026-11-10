@@ -9,6 +9,8 @@ import { isAxiosError } from "axios";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Alert } from "@/components/ui/alert";
+import { AuthShell } from "@/components/auth/auth-shell";
 import {
   Form,
   FormControl,
@@ -115,23 +117,22 @@ export default function SignupPage() {
     : null;
 
   return (
-    <div className="flex min-h-screen items-center justify-center p-6">
-      <div className="w-full max-w-sm space-y-6">
-        <div>
-          <h1 className="text-2xl font-semibold">Create an account</h1>
-          <p className="text-sm text-muted-foreground">
-            {step === "email"
-              ? "Enter your email to get started."
-              : "Tell us a little about yourself."}
-          </p>
-        </div>
+    <AuthShell
+      title="Create an account"
+      description={
+        step === "email"
+          ? "Enter your email to get started."
+          : "Tell us a little about yourself."
+      }
+    >
 
         {step === "email" && (
           <Form {...emailForm}>
             <form
               method="post"
+              noValidate
               onSubmit={emailForm.handleSubmit(onCheckEmail)}
-              className="space-y-4"
+              className="space-y-5"
             >
               <FormField
                 control={emailForm.control}
@@ -147,9 +148,9 @@ export default function SignupPage() {
                 )}
               />
 
-              {error && <p className="text-sm text-destructive">{error}</p>}
+              {error && <Alert variant="danger">{error}</Alert>}
 
-              <Button type="submit" className="w-full" disabled={submitting}>
+              <Button type="submit" size="lg" className="w-full" disabled={submitting}>
                 {submitting ? "Checking..." : "Continue"}
               </Button>
             </form>
@@ -160,30 +161,30 @@ export default function SignupPage() {
           <Form {...detailsForm}>
             <form
               method="post"
+              noValidate
               onSubmit={detailsForm.handleSubmit(onRegister)}
-              className="space-y-4"
+              className="space-y-5"
             >
-              <div className="flex items-center justify-between gap-2 text-sm">
-                <span className="truncate">
+              <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 rounded-md bg-muted px-3 py-2">
+                <span className="min-w-0 break-all">
                   Creating an account for <strong>{email}</strong>
                 </span>
                 <button
                   type="button"
                   onClick={goBackToEmail}
-                  className="shrink-0 text-primary underline-offset-4 hover:underline"
+                  className="inline-flex min-h-tap shrink-0 items-center font-bold text-primary underline underline-offset-4 hover:no-underline"
                 >
                   Change
                 </button>
               </div>
 
               {returningGuest && (
-                <p className="rounded-md border p-3 text-sm text-muted-foreground">
-                  Welcome back!
+                <Alert variant="info" title="Welcome back!">
                   {formattedLastVisit
                     ? ` Your last stay with us was on ${formattedLastVisit}.`
                     : ""}{" "}
                   The details you enter below will update your guest record.
-                </p>
+                </Alert>
               )}
 
               <FormField
@@ -270,25 +271,24 @@ export default function SignupPage() {
                 )}
               />
 
-              {error && <p className="text-sm text-destructive">{error}</p>}
+              {error && <Alert variant="danger">{error}</Alert>}
 
-              <Button type="submit" className="w-full" disabled={submitting}>
+              <Button type="submit" size="lg" className="w-full" disabled={submitting}>
                 {submitting ? "Creating account..." : "Create account"}
               </Button>
             </form>
           </Form>
         )}
 
-        <p className="text-center text-sm text-muted-foreground">
+        <p className="text-center text-muted-foreground">
           Already have an account?{" "}
           <Link
             href="/login"
-            className="text-primary underline-offset-4 hover:underline"
+            className="inline-flex min-h-tap items-center font-bold text-primary underline underline-offset-4 hover:no-underline"
           >
             Sign in
           </Link>
         </p>
-      </div>
-    </div>
+    </AuthShell>
   );
 }

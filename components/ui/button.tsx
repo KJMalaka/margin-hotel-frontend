@@ -4,37 +4,41 @@ import { cva, type VariantProps } from "class-variance-authority"
 
 import { cn } from "@/lib/utils"
 
+/*
+  Button roles - pick by meaning, not by look:
+  - default (primary): the one main action in a view (Book, Save, Sign in)
+  - secondary:         alternative actions next to a primary (Cancel, Back)
+  - view:              opening or viewing something (View room, View invoice)
+  - destructive:       deletes or removes data (Delete, Log out confirm)
+  - ghost / link:      low-emphasis toolbar and inline actions
+  - brand / brandOutline: CTAs on the navy header and other navy surfaces
+  Every size is at least 44px tall so it is easy to tap. Focus uses the
+  global :focus-visible outline from globals.css.
+*/
 const buttonVariants = cva(
-  "inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md font-bold transition-colors disabled:pointer-events-none disabled:opacity-60 [&_svg]:size-5 [&_svg]:shrink-0",
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-gold-deep",
-        destructive:
-          "bg-destructive text-destructive-foreground hover:bg-destructive/90",
-        outline:
-          "border border-input bg-background hover:bg-accent hover:text-accent-foreground",
+        default: "bg-primary text-primary-foreground hover:bg-primary-hover",
         secondary:
-          "bg-secondary text-secondary-foreground hover:bg-secondary/80",
-        ghost: "hover:bg-accent hover:text-accent-foreground",
-        link: "text-ocean underline-offset-4 hover:underline dark:text-gold",
-        // Brand CTAs: solid champagne gold, deepening on hover.
-        gold: "bg-gold text-navy-midnight transition-all hover:-translate-y-0.5 hover:bg-gold-deep hover:shadow-[0_12px_28px_-10px_rgba(185,154,69,0.65)] active:translate-y-0 motion-reduce:hover:translate-y-0",
-        // Thin gold outline for secondary CTAs on navy or photography.
-        goldOutline:
-          "border-[1.5px] border-gold/60 bg-gold/[0.04] text-gold-light transition-all hover:border-gold hover:bg-gold hover:text-navy-midnight",
-        // Navy outline for secondary CTAs on light sections.
-        navyOutline:
-          "border border-navy/40 text-navy hover:border-navy hover:bg-navy hover:text-ivory dark:border-gold/60 dark:text-gold dark:hover:bg-gold dark:hover:text-navy-midnight",
+          "border-2 border-primary bg-secondary text-primary hover:bg-accent dark:text-primary",
+        outline:
+          "border border-input bg-card text-foreground hover:bg-accent",
+        view: "bg-view text-view-foreground hover:bg-view-hover",
+        destructive:
+          "bg-destructive text-destructive-foreground hover:bg-destructive-hover",
+        ghost: "text-foreground hover:bg-accent",
+        link: "text-primary underline underline-offset-4 hover:no-underline",
+        brand: "bg-brand-gold text-brand hover:bg-brand-foreground",
+        brandOutline:
+          "border-2 border-brand-gold text-brand-foreground hover:bg-brand-gold hover:text-brand",
       },
       size: {
-        default: "h-10 px-4 py-2",
-        sm: "h-9 rounded-md px-3",
-        lg: "h-11 rounded-md px-8",
-        icon: "h-10 w-10",
-        // Uppercase, widely tracked label - the brand CTA style.
-        brand:
-          "h-[3.25rem] rounded-sm px-9 font-heading text-[0.7rem] font-medium uppercase tracking-brand duration-300",
+        default: "min-h-tap px-5 py-2 text-base",
+        sm: "min-h-tap px-3 py-1.5 text-base",
+        lg: "min-h-12 px-7 py-3 text-lg",
+        icon: "size-tap",
       },
     },
     defaultVariants: {

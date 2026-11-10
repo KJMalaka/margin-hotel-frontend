@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 
+import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -33,10 +34,13 @@ export function AddInvoiceDialog({ onInvoiceCreated }: AddInvoiceDialogProps) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="font-bold">Add Invoice</Button>
+        <Button>
+          <Plus aria-hidden />
+          Add invoice
+        </Button>
       </DialogTrigger>
 
-      <DialogContent className="max-w-md max-h-[85vh] overflow-y-auto">
+      <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle>New invoice</DialogTitle>
         </DialogHeader>

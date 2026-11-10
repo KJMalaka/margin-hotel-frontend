@@ -13,12 +13,15 @@ export default function AdminLayout({
       <SidebarProvider>
         <AppSidebar />
         <SidebarInset>
-          <header className="flex h-14 items-center gap-2 border-b px-4">
+          <header className="sticky top-0 z-10 flex min-h-16 items-center gap-3 border-b border-border bg-card/95 px-3 backdrop-blur sm:px-6">
             <SidebarTrigger />
-            <Separator orientation="vertical" className="h-4" />
-            <span className="font-medium">Margin Hotel Management</span>
+            <Separator orientation="vertical" className="h-6" />
+            <span className="text-lg font-bold">Margin Hotel management</span>
           </header>
-          <div className="p-6">{children}</div>
+          {/* SidebarInset is the <main> landmark; this is the skip-link target. */}
+          <div id="main" tabIndex={-1} className="mx-auto w-full max-w-7xl px-4 py-6 outline-none sm:px-6 sm:py-8">
+            {children}
+          </div>
         </SidebarInset>
       </SidebarProvider>
     </AuthGuard>

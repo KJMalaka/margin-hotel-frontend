@@ -1,5 +1,6 @@
 "use client";
 
+import { LoadingState } from "@/components/ui/state";
 import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { getSession, type AuthSession } from "@/lib/auth/session";
@@ -42,7 +43,9 @@ export function AuthGuard({ allowedRoles, children }: AuthGuardProps) {
     setAllowed(true);
   }, [pathname, router, allowedRoles]);
 
-  if (!allowed) return null;
+  if (!allowed) {
+    return <LoadingState label="Checking your access…" className="m-4 sm:m-6" />;
+  }
 
   return <>{children}</>;
 }

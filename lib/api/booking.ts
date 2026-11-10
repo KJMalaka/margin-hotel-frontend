@@ -25,6 +25,21 @@ interface BookingDto {
   checkInDate: string;
   checkOutDate: string;
   bookingChannel: BookingChannel;
+  /** Sent by GET /booking/getall and /booking/read. */
+  bookingDate?: string;
+  roomNumber?: number;
+}
+
+/** A booking as listed for staff (GET /booking/getall). */
+export interface BookingRecord {
+  bookingId: number;
+  guestId: number;
+  roomId: number;
+  roomNumber?: number;
+  bookingDate?: string;
+  checkInDate: string;
+  checkOutDate: string;
+  channel: BookingChannel;
 }
 
 function mapBooking(dto: BookingDto): BookingResponse {
@@ -54,4 +69,18 @@ export async function updateBooking(
     payload
   );
   return mapBooking(response.data);
+}
+/** Every booking in the system - staff only (RECEPTIONIST / ADMIN). */
+export async function getBookings(): Promise<BookingRecord[]> {
+  const response = await api.get<BookingDto[]>("/booking/getall");
+  return response.data.map((dto) => ({
+    bookingId: dto.bookingId,
+    guestId: dto.guestId,
+    roomId: dto.roomId,
+    roomNumber: dto.roomNumber,
+    bookingDate: dto.bookingDate,
+    checkInDate: dto.checkInDate,
+    checkOutDate: dto.checkOutDate,
+    channel: dto.bookingChannel,
+  }));
 }

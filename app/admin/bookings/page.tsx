@@ -1,8 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { AddBookingDialog } from "@/components/booking/add-booking-dialog";
+import { PageHeader } from "@/components/admin/page-header";
+import { StatusBadge } from "@/components/ui/status-badge";
+import { EmptyState, ErrorState, LoadingState } from "@/components/ui/state";
+import { Alert } from "@/components/ui/alert";
 import {
     Table,
     TableBody,
@@ -11,19 +15,9 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
-import { ROOM_TYPE_LABELS, getRoomById } from "@/data/rooms";
 import { formatAdminDate } from "@/lib/date-format";
+import { loadBookingRows, loadErrorMessage, type BookingRow } from "@/lib/admin/booking-rows";
 import type { BookingChannel } from "@/lib/validations/booking-schema";
-
-interface BookingRow {
-    bookingId: number;
-    guestName: string;
-    room: string;
-    channel: BookingChannel;
-    checkInDate: string;
-    checkOutDate: string;
-    status: "CONFIRMED";
-}
 
 const CHANNEL_LABELS: Record<BookingChannel, string> = {
     ONLINE: "Online",
@@ -31,107 +25,97 @@ const CHANNEL_LABELS: Record<BookingChannel, string> = {
     TELEPHONIC: "Telephonic",
 };
 
-const demoBookings: BookingRow[] = [
-    {
-        bookingId: 1001,
-        guestName: "Thabo Nkosi",
-        room: "Room 101 — Standard Room",
-        channel: "ONLINE",
-        checkInDate: "2026-09-12",
-        checkOutDate: "2026-09-14",
-        status: "CONFIRMED",
-    },
-    {
-        bookingId: 1002,
-        guestName: "Amahle Dlamini",
-        room: "Room 201 — Deluxe Room",
-        channel: "WALK_IN",
-        checkInDate: "2026-09-15",
-        checkOutDate: "2026-09-18",
-        status: "CONFIRMED",
-    },
-    {
-        bookingId: 1003,
-        guestName: "Sipho Mokoena",
-        room: "Room 301 — Suite",
-        channel: "TELEPHONIC",
-        checkInDate: "2026-09-20",
-        checkOutDate: "2026-09-22",
-        status: "CONFIRMED",
-    },
-];
-
 export default function BookingsPage() {
-    const [bookings, setBookings] = useState<BookingRow[]>(demoBookings);
+    const [bookings, setBookings] = useState<BookingRow[]>([]);
+    const [saved, setSaved] = useState<string | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    const load = useCallback(async () => {
+        setLoading(true);
+        setError(null);
+        try {
+            setBookings(await loadBookingRows());
+        } catch (err) {
+            setError(loadErrorMessage(err));
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    useEffect(() => {
+        load();
+    }, [load]);
+
+    const rows = bookings;
 
     return (
-        <div>
-            <div className="flex items-center justify-between mb-6">
-                <h1 className="text-2xl font-bold">Bookings</h1>
+        <div className="flex flex-col gap-6">
+            <PageHeader
+                title="Bookings"
+                description="All reservations across online, walk-in and phone channels, newest first."
+                className="mb-0"
+                actions={
+                    <AddBookingDialog
+                        onBookingCreated={(booking, values) => {
+                            // Saved on the backend - reload so the list shows the real record.
+                            setSaved(
+                                `Booking #${booking.bookingId} saved for ${values.firstName} ${values.lastName}.`
+                            );
+                            load();
+                        }}
+                    />
+                }
+            />
 
-                <AddBookingDialog
-                    onBookingCreated={(booking, values) => {
-                        const room = getRoomById(values.roomId);
+            {saved && (
+                <Alert variant="success" title="Booking saved">
+                    {saved} No payment was taken - create an invoice from the Invoices page when the guest pays.
+                </Alert>
+            )}
 
-                        setBookings((prev) => [
-                            {
-                                bookingId: booking.bookingId,
-                                guestName: `${values.firstName} ${values.lastName}`,
-                                room: room
-                                    ? `Room ${room.roomNumber} — ${ROOM_TYPE_LABELS[room.type]}`
-                                    : values.roomId,
-                                channel: booking.channel,
-                                checkInDate: booking.checkInDate,
-                                checkOutDate: booking.checkOutDate,
-                                status: "CONFIRMED",
-                            },
-                            ...prev,
-                        ]);
-                    }}
+            {loading && <LoadingState label="Loading bookings…" />}
+            {error && (
+                <ErrorState title="Bookings could not be loaded" message={error} onRetry={load} />
+            )}
+
+            {!loading && !error && rows.length === 0 && (
+                <EmptyState
+                    title="No bookings yet"
+                    description="Bookings made on the website, or added here for walk-in and phone guests, will appear in this list."
                 />
-            </div>
+            )}
 
-            <Table>
-                <TableHeader>
-                    <TableRow>
-                        <TableHead>Booking ID</TableHead>
-                        <TableHead>Guest</TableHead>
-                        <TableHead>Room</TableHead>
-                        <TableHead>Channel</TableHead>
-                        <TableHead>Check-in</TableHead>
-                        <TableHead>Check-out</TableHead>
-                        <TableHead>Status</TableHead>
-                    </TableRow>
-                </TableHeader>
-                <TableBody>
-                    {bookings.length === 0 ? (
+            {!loading && !error && rows.length > 0 && (
+                <Table label="Bookings">
+                    <TableHeader>
                         <TableRow>
-                            <TableCell
-                                colSpan={7}
-                                className="py-8 text-center text-muted-foreground"
-                            >
-                                No bookings found.
-                            </TableCell>
+                            <TableHead>Booking ID</TableHead>
+                            <TableHead>Guest</TableHead>
+                            <TableHead>Room</TableHead>
+                            <TableHead>Channel</TableHead>
+                            <TableHead>Check-in</TableHead>
+                            <TableHead>Check-out</TableHead>
+                            <TableHead>Stay</TableHead>
                         </TableRow>
-                    ) : (
-                        bookings.map((b) => (
-                            <TableRow key={b.bookingId}>
-                                <TableCell>{b.bookingId}</TableCell>
-                                <TableCell>{b.guestName}</TableCell>
-                                <TableCell>{b.room}</TableCell>
-                                <TableCell>{CHANNEL_LABELS[b.channel]}</TableCell>
-                                <TableCell>{formatAdminDate(b.checkInDate)}</TableCell>
-                                <TableCell>{formatAdminDate(b.checkOutDate)}</TableCell>
-                                <TableCell>
-                                    <span className="text-green-600 font-medium">
-                                        {b.status}
-                                    </span>
+                    </TableHeader>
+                    <TableBody>
+                        {rows.map((b) => (
+                            <TableRow key={`${b.status}-${b.bookingId}`}>
+                                <TableCell data-label="Booking ID" className="tabular-nums">{b.bookingId}</TableCell>
+                                <TableCell data-label="Guest" className="font-bold">{b.guestName}</TableCell>
+                                <TableCell data-label="Room">{b.room}</TableCell>
+                                <TableCell data-label="Channel">{CHANNEL_LABELS[b.channel]}</TableCell>
+                                <TableCell data-label="Check-in" className="whitespace-nowrap">{formatAdminDate(b.checkInDate)}</TableCell>
+                                <TableCell data-label="Check-out" className="whitespace-nowrap">{formatAdminDate(b.checkOutDate)}</TableCell>
+                                <TableCell data-label="Stay">
+                                    <StatusBadge status={b.status} />
                                 </TableCell>
                             </TableRow>
-                        ))
-                    )}
-                </TableBody>
-            </Table>
+                        ))}
+                    </TableBody>
+                </Table>
+            )}
         </div>
     );
 }

@@ -35,12 +35,14 @@ export function EditInvoiceDialog({ invoice, onInvoiceUpdated }: EditInvoiceDial
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="ghost" size="icon" aria-label={`Edit invoice ${invoice.reference}`}>
-          <Pencil className="h-4 w-4" />
+        <Button variant="secondary" size="sm">
+          <Pencil aria-hidden />
+          Edit
+          <span className="sr-only">invoice {invoice.reference}</span>
         </Button>
       </DialogTrigger>
 
-      <DialogContent className="max-w-md max-h-[85vh] overflow-y-auto">
+      <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle>Edit invoice {invoice.reference}</DialogTitle>
         </DialogHeader>

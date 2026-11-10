@@ -18,43 +18,48 @@ interface Amenity {
 
 const amenityList: Amenity[] = [
   { icon: Wifi, title: "High-speed Wi-Fi" },
-  { icon: CircleParking, title: "Free Secure Parking" },
-  { icon: AirVent, title: "Air Conditioning & Climate Control" },
-  { icon: ConciergeBell, title: "24/7 Front Desk & Concierge" },
-  { icon: Sparkles, title: "Daily Housekeeping" },
-  { icon: Waves, title: "Swimming Pool & Lounge" },
-  { icon: Coffee, title: "Complimentary Breakfast" },
-  { icon: Tv, title: "Dedicated Workspaces & Smart TV" },
+  { icon: CircleParking, title: "Free secure parking" },
+  { icon: AirVent, title: "Air conditioning & climate control" },
+  { icon: ConciergeBell, title: "24/7 front desk & concierge" },
+  { icon: Sparkles, title: "Daily housekeeping" },
+  { icon: Waves, title: "Swimming pool & lounge" },
+  { icon: Coffee, title: "Complimentary breakfast" },
+  { icon: Tv, title: "Dedicated workspaces & smart TV" },
 ];
 
+/*
+  Amenities sit on a full-width navy band - the only navy content section on
+  the page - and close with a thick gold bar, so it reads as one finished
+  block, clearly separate from the gallery that follows.
+*/
 export const FeaturesSection = () => {
   return (
-    <Section id="amenities" tone="navy">
+    <Section
+      id="amenities"
+      tone="navy"
+      aria-labelledby="amenities-title"
+      className="border-b-[6px] border-brand-gold"
+    >
       <div className="container">
         <SectionHeading
           tone="navy"
           align="center"
           eyebrow="Amenities"
-          title="What this place offers"
+          title={<span id="amenities-title">What this place offers</span>}
           description="Everything you need for a comfortable, relaxing, and seamless stay."
-          className="mb-16"
+          className="mb-10 sm:mb-12"
         />
 
-        {/* Hairline grid: 1px gaps over a gold-tinted backdrop draw the dividers. */}
-        <ul className="grid grid-cols-2 gap-px border border-gold/25 bg-gold/25 lg:grid-cols-4">
+        <ul className="grid gap-3 min-[360px]:grid-cols-2 lg:grid-cols-4 lg:gap-4">
           {amenityList.map(({ icon: AmenityIcon, title }) => (
             <li
               key={title}
-              className="group flex flex-col items-center gap-5 bg-navy px-4 py-10 text-center transition-colors duration-500 hover:bg-[#15496f] sm:px-6"
+              className="flex items-center gap-4 rounded-md border border-brand-gold/30 bg-brand-foreground/5 p-4 min-[360px]:flex-col min-[360px]:text-center sm:p-6"
             >
-              <AmenityIcon
-                aria-hidden
-                strokeWidth={1.25}
-                className="size-8 text-gold transition-transform duration-500 motion-safe:group-hover:-translate-y-0.5"
-              />
-              <span className="text-sm leading-snug text-ivory/90 sm:text-base">
-                {title}
+              <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-brand-gold/15">
+                <AmenityIcon aria-hidden strokeWidth={1.75} className="size-6 text-brand-gold" />
               </span>
+              <span className="text-base text-brand-foreground sm:text-lg">{title}</span>
             </li>
           ))}
         </ul>

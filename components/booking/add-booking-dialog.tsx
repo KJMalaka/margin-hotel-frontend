@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 
+import { Check, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
     Dialog,
@@ -48,28 +49,34 @@ export function AddBookingDialog({ onBookingCreated }: AddBookingDialogProps) {
             }}
         >
             <DialogTrigger asChild>
-                <Button className="font-bold">Add Booking</Button>
+                <Button>
+                    <Plus aria-hidden />
+                    Add booking
+                </Button>
             </DialogTrigger>
 
-            <DialogContent className="max-w-md max-h-[85vh] overflow-y-auto">
+            <DialogContent className="max-w-lg">
                 <DialogHeader>
                     <DialogTitle>New booking</DialogTitle>
                 </DialogHeader>
 
-                <p className="text-sm text-muted-foreground -mt-2">
+                <p className="-mt-2 text-muted-foreground">
                     Create a booking on the guest&apos;s behalf — for walk-ins or
                     phone reservations.
                 </p>
 
-                <div className="flex gap-2">
+                <div role="group" aria-label="Booking channel" className="flex flex-wrap gap-2">
                     {STAFF_CHANNELS.map((c) => (
                         <Button
                             key={c.value}
                             type="button"
                             variant={channel === c.value ? "default" : "outline"}
                             size="sm"
+                            aria-pressed={channel === c.value}
                             onClick={() => setChannel(c.value)}
                         >
+                            {/* Tick marks the choice without relying on colour. */}
+                            {channel === c.value && <Check aria-hidden />}
                             {c.label}
                         </Button>
                     ))}

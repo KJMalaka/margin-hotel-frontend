@@ -19,12 +19,10 @@ const pillars = [
 
 export const AboutSection = () => {
   return (
-    <Section id="about" tone="light" rules="top">
-      <div className="container grid items-center gap-16 lg:grid-cols-2 lg:gap-24">
-        <div className="relative order-last lg:order-first">
-          {/* Offset gold frame - a quiet nod to the brand's thin gold lines. */}
-          <div aria-hidden className="absolute -bottom-4 -left-4 h-full w-full border border-gold-light sm:-bottom-6 sm:-left-6" />
-          <div className="relative aspect-[4/5] overflow-hidden">
+    <Section id="about" tone="light">
+      <div className="container grid items-center gap-10 lg:grid-cols-2 lg:gap-16">
+        <div className="relative order-last overflow-hidden rounded-lg shadow-md lg:order-first">
+          <div className="relative aspect-[4/3] lg:aspect-[4/5]">
             <Image
               src={brandImages.about.src}
               alt={brandImages.about.alt}
@@ -38,31 +36,26 @@ export const AboutSection = () => {
         <div>
           <SectionHeading
             eyebrow="About Margin"
-            title={
-              <>
-                A calm retreat
-                <br />
-                by the sea
-              </>
-            }
+            title="A calm retreat by the sea"
             description="Margin Hotel brings together the ease of the coast and the care of a true luxury hotel. Every detail - from golden-hour terraces to sunlit lounges - is designed to help you slow down."
           />
 
-          <ul className="mt-12 divide-y divide-border border-y border-border">
+          <ol className="mt-8 divide-y divide-border border-y border-border">
             {pillars.map(({ title, text }, i) => (
-              <li key={title} className="grid grid-cols-[3rem_1fr] gap-4 py-6">
-                <span className="display-title text-3xl text-gold-deep" aria-hidden>
-                  0{i + 1}
+              <li key={title} className="grid grid-cols-[2.5rem_1fr] gap-4 py-5">
+                <span
+                  aria-hidden
+                  className="flex size-10 items-center justify-center rounded-full bg-muted text-lg font-bold text-bronze"
+                >
+                  {i + 1}
                 </span>
                 <div>
-                  <h3 className="font-heading text-xs font-semibold uppercase tracking-brand text-navy dark:text-ivory">
-                    {title}
-                  </h3>
-                  <p className="mt-2 text-muted-foreground">{text}</p>
+                  <h3 className="text-xl">{title}</h3>
+                  <p className="mt-1 text-muted-foreground">{text}</p>
                 </div>
               </li>
             ))}
-          </ul>
+          </ol>
         </div>
       </div>
     </Section>
