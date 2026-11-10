@@ -7,8 +7,6 @@ import { Button } from "@/components/ui/button";
 import {
     Dialog,
     DialogContent,
-    DialogHeader,
-    DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog";
 import { BookingForm } from "@/components/booking/booking-form";
@@ -27,7 +25,7 @@ interface AddBookingDialogProps {
 
 /**
  * "Add Booking" button that opens the staff booking form (walk-in/telephonic)
- * in a modal - the same flow used on the admin bookings page, reused
+ * in a full-screen page-like dialog, reused
  * wherever staff need to create a booking on a guest's behalf (e.g. from
  * the payments table too).
  */
@@ -81,8 +79,6 @@ export function AddBookingDialog({ onBookingCreated }: AddBookingDialogProps) {
                         </Button>
                     ))}
                 </div>
-
-                <BookingForm key={channel} channel={channel} compact onSuccess={handleSuccess} />
             </DialogContent>
         </Dialog>
     );

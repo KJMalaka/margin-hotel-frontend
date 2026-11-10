@@ -47,7 +47,9 @@ export const RoomBookingDialog = ({ room }: RoomBookingDialogProps) => {
           </DialogTitle>
         </DialogHeader>
 
-        <BookingForm channel="ONLINE" fixedRoom={room} compact />
+            <BookingForm channel="ONLINE" fixedRoom={room} compact />
+          </div>
+        </div>
       </DialogContent>
     </Dialog>
   );

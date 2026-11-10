@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { isAxiosError } from "axios";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
@@ -96,6 +96,68 @@ function describePaymentMethod(details: SimulatedPaymentDetails) {
     return details.method === "CARD"
         ? card
         : `${PAYMENT_METHOD_LABELS[details.method]} (${card})`;
+}
+
+function BookingProgress({
+    currentStep,
+    stepTopRef,
+}: {
+    currentStep: 1 | 2 | 3;
+    stepTopRef: React.RefObject<HTMLElement>;
+}) {
+    const steps = [
+        { number: 1, label: "Guest details" },
+        { number: 2, label: "Payment details" },
+        { number: 3, label: "Confirmation" },
+    ] as const;
+
+    return (
+        <nav
+            ref={stepTopRef}
+            aria-label="Booking progress"
+            className="booking-progress mb-8 scroll-mt-4"
+        >
+            <ol className="flex items-start">
+                {steps.map(({ number: step, label }, index) => {
+                    const complete = step < currentStep;
+                    const current = step === currentStep;
+
+                    return (
+                        <li
+                            key={label}
+                            aria-current={current ? "step" : undefined}
+                            className="relative flex min-w-0 flex-1 flex-col items-center text-center"
+                        >
+                            {index < steps.length - 1 && (
+                                <span
+                                    aria-hidden="true"
+                                    className={`absolute left-1/2 top-4 h-px w-full ${
+                                        complete ? "bg-gold" : "bg-border"
+                                    }`}
+                                />
+                            )}
+                            <span
+                                className={`relative z-10 flex h-8 w-8 items-center justify-center rounded-full border text-xs font-semibold ${
+                                    current || complete
+                                        ? "border-navy bg-navy text-ivory dark:border-gold dark:bg-gold dark:text-navy-midnight"
+                                        : "border-border bg-background text-muted-foreground"
+                                }`}
+                            >
+                                {complete ? <Check className="h-4 w-4" aria-hidden="true" /> : step}
+                            </span>
+                            <span
+                                className={`mt-2 max-w-full whitespace-normal px-1 text-[0.6rem] font-medium leading-tight sm:text-xs ${
+                                    current ? "text-foreground" : "text-muted-foreground"
+                                }`}
+                            >
+                                {label}
+                            </span>
+                        </li>
+                    );
+                })}
+            </ol>
+        </nav>
+    );
 }
 
 interface BookingConfirmation {
@@ -447,10 +509,10 @@ export function BookingForm({ channel, onSuccess, compact, fixedRoom, initialSta
             setCheckout(null);
             form.reset({
                 ...bookingFormDefaultValues,
-                firstName: session?.firstName ?? "",
-                lastName: session?.lastName ?? "",
-                email: session?.email ?? "",
-                contactNumber: session?.mobile ?? "",
+                firstName: session?.role === "USER" ? session.firstName ?? "" : "",
+                lastName: session?.role === "USER" ? session.lastName ?? "" : "",
+                email: session?.role === "USER" ? session.email : "",
+                contactNumber: session?.role === "USER" ? session.mobile ?? "" : "",
                 roomId: fixedRoom?.roomId ?? "",
             });
             onSuccess?.(bookingRecord, progress.values);
@@ -496,7 +558,8 @@ export function BookingForm({ channel, onSuccess, compact, fixedRoom, initialSta
             confirmation;
 
         return (
-            <section aria-live="polite" className="space-y-6">
+            <section aria-live="polite" className="booking-receipt space-y-6">
+                {progress}
                 <div className="flex flex-col items-center gap-3 text-center">
                     <span className="flex size-16 items-center justify-center rounded-full bg-success-bg">
                         <Check className="size-8 text-success" aria-hidden="true" />
@@ -584,7 +647,7 @@ export function BookingForm({ channel, onSuccess, compact, fixedRoom, initialSta
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <div className="receipt-actions grid grid-cols-1 gap-3 sm:grid-cols-2">
                     <Button
                         type="button"
                         variant="secondary"
@@ -641,11 +704,14 @@ export function BookingForm({ channel, onSuccess, compact, fixedRoom, initialSta
 
         if (processingPayment && processingStep) {
             return (
-                <PaymentProcessing
-                    currentStep={processingStep}
-                    amountLabel={zar.format(total)}
-                    methodLabel={lastPaymentDetails ? describePaymentMethod(lastPaymentDetails) : ""}
-                />
+                <div>
+                    {progress}
+                    <PaymentProcessing
+                        currentStep={processingStep}
+                        amountLabel={zar.format(total)}
+                        methodLabel={lastPaymentDetails ? describePaymentMethod(lastPaymentDetails) : ""}
+                    />
+                </div>
             );
         }
 

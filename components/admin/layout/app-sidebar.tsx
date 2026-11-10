@@ -157,17 +157,15 @@ export default function AppSidebar() {
                     <span className='text-sm text-sidebar-foreground/80'>
                       Name unavailable
                     </span>
-                  )}
-                </span>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          )}
-          <Dialog open={logoutDialogOpen} onOpenChange={setLogoutDialogOpen}>
-            <SidebarMenuItem>
-              <DialogTrigger asChild>
-                <SidebarMenuButton tooltip='Log out'>
-                  <LogOut />
-                  <span>Log out</span>
+                    <span className='text-xs text-muted-foreground'>
+                      {session.role === 'ADMIN' ? 'Administrator' : 'Receptionist'}
+                    </span>
+                    {nameLoadError && (
+                      <span className='text-xs text-destructive'>
+                        Name unavailable
+                      </span>
+                    )}
+                  </span>
                 </SidebarMenuButton>
               </DialogTrigger>
             </SidebarMenuItem>

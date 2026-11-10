@@ -59,7 +59,14 @@ export default function LoginPage() {
   }
 
   return (
-    <AuthShell title="Sign in" description="Sign in to your Margin Hotel account.">
+    <div className="flex min-h-screen items-center justify-center p-6">
+      <div className="w-full max-w-sm space-y-6 border border-gold/70 bg-card p-6 sm:p-8">
+        <div>
+          <h1 className="text-2xl font-semibold">Sign in</h1>
+          <p className="text-sm text-muted-foreground">
+            Sign in to your Margin Hotel account.
+          </p>
+        </div>
 
         <Form {...form}>
           <form
