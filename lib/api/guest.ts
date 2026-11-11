@@ -34,3 +34,18 @@ export async function getGuests(): Promise<Guest[]> {
   const response = await api.get<Guest[]>("/guest/getall");
   return response.data;
 }
+
+export interface UpdateGuestRequest extends CreateGuestRequest {
+  guestId: number;
+}
+
+/** Edit a guest - staff only. 400 = invalid details, 409 = blocked by a guest rule. */
+export async function updateGuest(data: UpdateGuestRequest): Promise<Guest> {
+  const response = await api.put<Guest>("/guest/update", data);
+  return response.data;
+}
+
+/** Delete a guest - staff only. 409 when the guest has bookings or an online account. */
+export async function deleteGuest(guestId: number): Promise<void> {
+  await api.delete(`/guest/delete/${guestId}`);
+}

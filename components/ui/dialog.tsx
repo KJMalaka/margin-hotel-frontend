@@ -51,7 +51,12 @@ const DialogContent = React.forwardRef<
       {...props}
     >
       {children}
-      <DialogPrimitive.Close className="absolute right-2 top-2 inline-flex size-tap items-center justify-center rounded-md text-foreground hover:bg-accent disabled:pointer-events-none">
+      <DialogPrimitive.Close
+        className={cn(
+          "absolute right-2 top-2 inline-flex size-tap items-center justify-center rounded-md text-foreground hover:bg-accent disabled:pointer-events-none",
+          closeButtonClassName
+        )}
+      >
         <X aria-hidden className="size-5" />
         <span className="sr-only">Close</span>
       </DialogPrimitive.Close>

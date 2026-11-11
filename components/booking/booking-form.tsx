@@ -131,26 +131,29 @@ function BookingProgress({
                             {index < steps.length - 1 && (
                                 <span
                                     aria-hidden="true"
-                                    className={`absolute left-1/2 top-4 h-px w-full ${
-                                        complete ? "bg-gold" : "bg-border"
+                                    className={`absolute left-1/2 top-5 h-0.5 w-full ${
+                                        complete ? "bg-primary" : "bg-input"
                                     }`}
                                 />
                             )}
+                            {/* Done steps show a tick, the current step is filled and
+                                bold, so progress never depends on colour alone. */}
                             <span
-                                className={`relative z-10 flex h-8 w-8 items-center justify-center rounded-full border text-xs font-semibold ${
+                                className={`relative z-10 flex size-10 items-center justify-center rounded-full border-2 text-base font-bold ${
                                     current || complete
-                                        ? "border-navy bg-navy text-ivory dark:border-gold dark:bg-gold dark:text-navy-midnight"
-                                        : "border-border bg-background text-muted-foreground"
+                                        ? "border-primary bg-primary text-primary-foreground"
+                                        : "border-input bg-card text-muted-foreground"
                                 }`}
                             >
-                                {complete ? <Check className="h-4 w-4" aria-hidden="true" /> : step}
+                                {complete ? <Check className="size-5" aria-hidden="true" /> : step}
                             </span>
                             <span
-                                className={`mt-2 max-w-full whitespace-normal px-1 text-[0.6rem] font-medium leading-tight sm:text-xs ${
-                                    current ? "text-foreground" : "text-muted-foreground"
+                                className={`mt-2 max-w-full whitespace-normal px-1 text-xs leading-tight sm:text-base ${
+                                    current ? "font-bold text-foreground" : "text-muted-foreground"
                                 }`}
                             >
                                 {label}
+                                {complete && <span className="sr-only"> (done)</span>}
                             </span>
                         </li>
                     );
@@ -212,6 +215,22 @@ export function BookingForm({ channel, onSuccess, compact, fixedRoom, initialSta
     // Staff book on a guest's behalf, so their own details must never be
     // prefilled into the guest fields - only a signed-in guest's are.
     const isGuestSelfBooking = session?.role === "USER";
+    const stepTopRef = useRef<HTMLElement>(null);
+    const currentStep: 1 | 2 | 3 = confirmation ? 3 : checkout ? 2 : 1;
+    const previousStepRef = useRef(currentStep);
+
+    // When the step changes inside the full-screen dialog, scroll back to the top.
+    useEffect(() => {
+        if (previousStepRef.current === currentStep) return;
+        previousStepRef.current = currentStep;
+        stepTopRef.current
+            ?.closest<HTMLElement>('[role="dialog"]')
+            ?.scrollTo({ top: 0, behavior: "smooth" });
+    }, [currentStep]);
+
+    const progress = channel === "ONLINE"
+        ? <BookingProgress currentStep={currentStep} stepTopRef={stepTopRef} />
+        : null;
 
     const form = useForm<BookingFormValues>({
         resolver: zodResolver(bookingFormSchema),
@@ -722,6 +741,7 @@ export function BookingForm({ channel, onSuccess, compact, fixedRoom, initialSta
 
         return (
             <section className="space-y-6">
+                {progress}
                 <div>
                     <h2 className="text-2xl">Review and pay</h2>
                     <p className="mt-1 text-muted-foreground">
@@ -828,6 +848,7 @@ export function BookingForm({ channel, onSuccess, compact, fixedRoom, initialSta
 
     return (
         <Form {...form}>
+            {progress}
             <form onSubmit={form.handleSubmit(onSubmit)} noValidate className="space-y-6">
                 <fieldset className="space-y-4">
                     <legend className={compact ? "sr-only" : "mb-4 text-xl font-bold"}>

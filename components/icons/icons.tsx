@@ -4,6 +4,7 @@ import {
   CreditCard,
   FileText,
   Users,
+  ContactRound,
   ChevronRight,
   Hotel,
   type LucideIcon,
@@ -18,5 +19,6 @@ export const Icons = {
   payments: CreditCard,
   invoices: FileText,
   staff: Users,
+  guests: ContactRound,
   chevronRight: ChevronRight,
 };
