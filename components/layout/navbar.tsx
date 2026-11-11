@@ -73,10 +73,12 @@ function useActiveSection(enabled: boolean) {
 function AccountMenu({
   name,
   onLogout,
+  onNavigate,
   mobile = false,
 }: {
   name: string;
   onLogout: () => void;
+  onNavigate?: () => void;
   mobile?: boolean;
 }) {
   return (
@@ -97,10 +99,22 @@ function AccountMenu({
       </summary>
       <div
         className={cn(
-          "absolute right-0 z-50 mt-2 min-w-44 rounded-md border border-border bg-popover p-1 shadow-lg",
+          "absolute right-0 z-50 mt-2 min-w-52 rounded-md border border-border bg-popover p-1 shadow-lg",
           mobile && "static mt-2 w-full shadow-none"
         )}
       >
+        <Link
+          href="/account"
+          onClick={(e) => {
+            // The menu is a <details>, so close it when the link is used.
+            e.currentTarget.closest("details")?.removeAttribute("open");
+            onNavigate?.();
+          }}
+          className="flex min-h-tap w-full items-center gap-2 rounded-sm px-3 text-left font-bold text-foreground hover:bg-accent"
+        >
+          <UserRound aria-hidden className="size-5" />
+          Account details
+        </Link>
         <button
           type="button"
           onClick={onLogout}
@@ -226,8 +240,13 @@ export const Navbar = () => {
               </nav>
 
               <div className="mt-auto flex flex-col gap-3 border-t border-border pt-5">
-                {session && (
-                  <AccountMenu name={accountName} mobile onLogout={handleLogout} />
+                                {session && (
+                  <AccountMenu
+                    name={accountName}
+                    mobile
+                    onLogout={handleLogout}
+                    onNavigate={() => setIsOpen(false)}
+                  />
                 )}
                 <Button asChild size="lg">
                   <Link href="/book" onClick={() => setIsOpen(false)}>
