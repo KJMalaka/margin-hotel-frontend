@@ -1,4 +1,5 @@
 import { api } from "@/lib/api/axios";
+import type { AuthUserResponse } from "@/lib/api/auth";
 
 export interface Guest {
   guestId: number;
@@ -48,4 +49,21 @@ export async function updateGuest(data: UpdateGuestRequest): Promise<Guest> {
 /** Delete a guest - staff only. 409 when the guest has bookings or an online account. */
 export async function deleteGuest(guestId: number): Promise<void> {
   await api.delete(`/guest/delete/${guestId}`);
+}
+
+export interface UpdateContactRequest {
+  email: string;
+  mobile: string;
+}
+
+/**
+ * The logged-in guest edits their own email and mobile (the name can't be changed).
+ * 400 = invalid details, 409 = email already in use.
+ * Returns a fresh token because the login email may have changed.
+ */
+export async function updateMyContact(
+  data: UpdateContactRequest
+): Promise<AuthUserResponse> {
+  const response = await api.put<AuthUserResponse>("/account/contact", data);
+  return response.data;
 }
